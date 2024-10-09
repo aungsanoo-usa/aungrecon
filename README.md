@@ -11,7 +11,7 @@ Clone the repository
 git clone https://github.com/aungsanoo-usa/aungrecon.git
 ```
 ```bash
-cd lostools
+cd aungrecon
 ```
 ```bash
 chmod +x install.sh
