@@ -1,3 +1,5 @@
+
+
 # aungrecon
 <h4>Auto Recon tool for finding SQLi,XSS,LFi,OpenRedirect</h4>
 
@@ -5,17 +7,21 @@
 <h5>Installation</h5>
 
 Clone the repository
-
-<pre>git clone https://github.com/aungsanoo-usa/aungrecon.git</pre>
-
-<pre>cd lostools</pre>
-<pre>chmod +x install.sh
-chmod +x aungrecon.sh</pre>
-
+```bash
+git clone https://github.com/aungsanoo-usa/aungrecon.git
+```
+```bash
+cd lostools
+```
+```bash
+chmod +x install.sh
+chmod +x aungrecon.sh
+```
 Install requirements tools
-
-<pre>./install.sh</pre>
-
+```bash
+./install.sh
+```
 Run Script
-
-<pre>./aungrecon.sh</pre>
+```bash
+./aungrecon.sh
+```
