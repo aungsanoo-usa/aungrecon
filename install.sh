@@ -13,7 +13,7 @@ printf "##########################################################\n\n${NORMAL}"
 sudo apt-get -y update
 
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt-get install -y python3-pip dnspython golang
+sudo apt install -y golang-go
 
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 cd $HOME/aungrecon
