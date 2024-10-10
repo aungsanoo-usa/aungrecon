@@ -10,7 +10,7 @@ printf "${BOLD}${YELLOW}########################################################
 printf "##### Welcome to the AungRecon dependency installer #####\n"
 printf "##########################################################\n\n${NORMAL}"
 
-sudo apt-get -y update
+sudo apt -y update
 
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
 sudo apt install -y golang-go
@@ -67,14 +67,14 @@ cd ..
 
 printf "${CYAN}Paramspider\n${NORMAL}"
 cd $HOME/aungrecon/paramspider
-pip install .
+pip3 install . --break-system-packages
 sudo mv ~/.local/bin/paramspider /usr/local/bin
 cd ..
 
 printf "${CYAN}Installing uro\n${NORMAL}"
-sudo pip3 install uro
+sudo pip3 install uro --break-system-packages
 
 printf "${CYAN}Installing pystyle\n${NORMAL}"
-sudo pip3 install pystyle
+sudo pip3 install pystyle --break-system-packages
 
 printf "${BOLD}${YELLOW}Installation completed successfully!\n${NORMAL}"
