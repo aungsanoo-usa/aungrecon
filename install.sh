@@ -20,7 +20,7 @@ cd $HOME/aungrecon
 
 declare -A REPOS=(
   ["xss_vibes"]="https://github.com/faiyazahmad07/xss_vibes.git"
-  ["Paramspider"]="https://github.com/devanshbatham/paramspider"
+  ["paramspider"]="https://github.com/devanshbatham/paramspider"
   ["bsqli"]="https://github.com/KKonaNN/bsqli.git"
   ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
@@ -70,6 +70,12 @@ printf "${CYAN}openredirex\n${NORMAL}"
 cd $HOME/aungrecon/openredirex
 chmod +x setup.sh
 sudo bash setup.sh
+cd ..
+
+printf "${CYAN}Paramspider\n${NORMAL}"
+cd $HOME/aungrecon/paramspider
+pip install .
+sudo mv ~/.local/bin/paramspider /usr/local/bin
 cd ..
 
 printf "${BOLD}${YELLOW}Installation completed successfully!\n${NORMAL}"
