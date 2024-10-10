@@ -73,6 +73,7 @@ cd ..
 
 printf "${CYAN}Installing uro\n${NORMAL}"
 sudo pip3 install uro --break-system-packages
+sudo mv ~/.local/bin/uro /usr/local/bin
 
 printf "${CYAN}Installing pystyle\n${NORMAL}"
 sudo pip3 install pystyle --break-system-packages
