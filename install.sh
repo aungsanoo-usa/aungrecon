@@ -37,13 +37,6 @@ for repo in "${!REPOS[@]}"; do
  
 done
 
-
-pip3 install uro
-
-pip3 install pystyle
-
-
-
 mkdir -p ~/.gf
 cp -r Gf-Patterns/* ~/.gf
 
@@ -77,5 +70,11 @@ cd $HOME/aungrecon/paramspider
 pip install .
 sudo mv ~/.local/bin/paramspider /usr/local/bin
 cd ..
+
+printf "${CYAN}Installing uro\n${NORMAL}"
+sudo pip3 install uro
+
+printf "${CYAN}Installing pystyle\n${NORMAL}"
+sudo pip3 install pystyle
 
 printf "${BOLD}${YELLOW}Installation completed successfully!\n${NORMAL}"
