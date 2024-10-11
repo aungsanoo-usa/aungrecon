@@ -20,11 +20,11 @@ cd $HOME/aungrecon
 
 declare -A REPOS=(
   ["xss_vibes"]="https://github.com/faiyazahmad07/xss_vibes.git"
-  ["paramspider"]="https://github.com/devanshbatham/paramspider"
   ["bsqli"]="https://github.com/KKonaNN/bsqli.git"
   ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
+  ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
 )
 
 for repo in "${!REPOS[@]}"; do
@@ -51,6 +51,7 @@ declare -a GO_TOOLS=(
   "github.com/PentestPad/subzy"
   "github.com/projectdiscovery/katana/cmd/katana"
   "github.com/tomnomnom/anew"
+  "github.com/projectdiscovery/nuclei/v3/cmd/nuclei"
 )
 
 for tool in "${GO_TOOLS[@]}"; do
@@ -66,12 +67,6 @@ printf "${CYAN}openredirex\n${NORMAL}"
 cd $HOME/aungrecon/openredirex
 chmod +x setup.sh
 sudo bash setup.sh
-cd ..
-
-printf "${CYAN}Paramspider\n${NORMAL}"
-cd $HOME/aungrecon/paramspider
-pip3 install . --break-system-packages
-sudo mv ~/.local/bin/paramspider /usr/local/bin
 cd ..
 
 printf "${CYAN}Installing uro\n${NORMAL}"
