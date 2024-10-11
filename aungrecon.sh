@@ -55,11 +55,9 @@ printf "${uline}################################################################
 # SQLi
 echo -e "${yellow}\e[5m[+]Finding SQLI vulnerability....${reset}"
 printf "${uline}#######################################################################${reset}\n"
-paramspider -l "alivesub.txt" -s
-cd results
-cat *.txt > allurls.txt
+katana -list alivesub.txt -d 5 | grep '=' | urldedupe | anew allurls.txt
 #Remove FUZZ and save as final.txt
-cat allurls.txt | sed 's/FUZZ//g' > final.txt
+cat allurls.txt | sed 's/=.*/=/' > final.txt
 mv final.txt $HOME/aungrecon/output/final.txt
 cd $HOME/aungrecon/bsqli
 python3 main.py -l $HOME/aungrecon/output/final.txt -p payloads/xor.txt -t 5
@@ -76,7 +74,7 @@ printf "${uline}################################################################
 echo -e "${yellow}\e[5m[+] Open Redirect Testing ....${reset}"
 printf "${uline}#######################################################################${reset}\n"
 
-cat $HOME/aungrecon/results/allurls.txt |  openredirex -p $HOME/aungrecon/or.txt -k "FUZZ" -c 30 > $HOME/aungrecon/open_redirect_vul.txt
+cat $HOME/aungrecon/allurls.txt |  openredirex -p $HOME/aungrecon/or.txt -k "FUZZ" -c 30 > $HOME/aungrecon/open_redirect_vul.txt
 
 # LFI
 printf "${uline}#######################################################################${reset}\n"
@@ -88,8 +86,7 @@ printf "${uline}################################################################
 echo -e "${yellow}\e[5m[+] Remove the intermediate output files ....${reset}"
 printf "${uline}#######################################################################${reset}\n"
 mv $HOME/aungrecon/open_redirect_vul.txt $HOME/aungrecon/output/open_redirect_vul.txt
-rm sub.txt alivesub.txt
-rm -r results
+rm sub.txt alivesub.txt allurls.txt
 cd bsqli
 rm *.txt
 cd ..
