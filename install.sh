@@ -13,7 +13,7 @@ printf "##########################################################\n\n${NORMAL}"
 sudo apt -y update
 
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go
+sudo apt install -y golang-go cmake
 
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 cd $HOME/aungrecon
@@ -24,6 +24,7 @@ declare -A REPOS=(
   ["bsqli"]="https://github.com/KKonaNN/bsqli.git"
   ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
+  ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
 )
 
 for repo in "${!REPOS[@]}"; do
@@ -48,6 +49,8 @@ declare -a GO_TOOLS=(
   "github.com/tomnomnom/gf"
   "github.com/tomnomnom/qsreplace"
   "github.com/PentestPad/subzy"
+  "github.com/projectdiscovery/katana/cmd/katana"
+  "github.com/tomnomnom/anew"
 )
 
 for tool in "${GO_TOOLS[@]}"; do
@@ -77,5 +80,11 @@ sudo mv ~/.local/bin/uro /usr/local/bin
 
 printf "${CYAN}Installing pystyle\n${NORMAL}"
 sudo pip3 install pystyle --break-system-packages
+
+printf "${CYAN}Installing urldedupe\n${NORMAL}"
+cd $HOME/aungrecon/urldedupe
+cmake CMakeLists.txt
+make
+sudo mv $HOME/aungrecon/urldedupe/urldedupe /usr/local/bin
 
 printf "${BOLD}${YELLOW}Installation completed successfully!\n${NORMAL}"
