@@ -63,6 +63,12 @@ cd $HOME/aungrecon/bsqli
 python3 main.py -l $HOME/aungrecon/output/final.txt -p payloads/xor.txt -t 5
 cp output.txt $HOME/aungrecon/output/sqli_vul.txt
 printf "${uline}#######################################################################${reset}\n"
+
+echo -e "${yellow}\e[5m[+] Vulnerability: Multiples vulnerabilities....${reset}"
+echo -e "${yellow}\e[5mRunning multiple templates to discover vulnerabilities....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+nuclei -l $HOME/aungrecon/alivesub.txt -t $HOME/aungrecon/priv8-Nuclei -severity low,medium,high,critical  -o "$HOME/aungrecon/output/mutiple_vulnerabilities.txt"
+printf "${uline}#######################################################################${reset}\n"
 # XSS
 echo -e "${yellow}\e[5m[+]Finding XSS vulnerability....${reset}"
 printf "${uline}#######################################################################${reset}\n"
@@ -100,4 +106,5 @@ echo -e "${cyan}\e[5m- XSS: $output_dir/xss_vul.txt${reset}"
 echo -e "${cyan}\e[5m- Open Redirect: $output_dir/open_redirect_vul.txt${reset}"
 echo -e "${cyan}\e[5m- LFI: $output_dir/lfi_vul.txt${reset}"
 echo -e "${cyan}\e[5m- SQLi: $output_dir/sqli_vul.txt${reset}"
+echo -e "${cyan}\e[5m- SQLi: $output_dir/mutiple_vulnerabilities.txt${reset}"
 printf "${uline}#######################################################################${reset}\n"
