@@ -114,7 +114,7 @@ rm final.txt
 printf "${uline}#######################################################################${reset}\n"
 # Notify the user that all tasks are complete
 echo -e "${yellow}\e[5mFiltered URLs have been saved to the respective output files in the 'output' directory:${reset}"
-echo -e "${cyan}\e[5m- Nmap: $output_dir/xss_vul.txt${reset}"
+echo -e "${cyan}\e[5m- Nmap: $output_dir/nmap.txt${reset}"
 echo -e "${cyan}\e[5m- XSS: $output_dir/xss_vul.txt${reset}"
 echo -e "${cyan}\e[5m- Open Redirect: $output_dir/open_redirect_vul.txt${reset}"
 echo -e "${cyan}\e[5m- LFI: $output_dir/lfi_vul.txt${reset}"
