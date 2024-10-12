@@ -13,7 +13,7 @@ printf "##########################################################\n\n${NORMAL}"
 sudo apt -y update
 
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake
+sudo apt install -y golang-go cmake nmap
 
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 cd $HOME/aungrecon
