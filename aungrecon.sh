@@ -36,7 +36,19 @@ echo -e "${blue}[+]Normalized URL being used${reset}: $website_url"
 # Create an output directory if it doesn't exist
 output_dir="output"
 mkdir -p "$output_dir"
+
+printf "${green}[+] Checking if the target is alive...${reset}\n"
+	if ping -c 1 -W 1 "$website_input" &> /dev/null;
+	then
+		printf "\n${yellow}$website_input${reset} is alive!${reset}\n"
+		else
+			printf "\n${yellow}$website_input${red} is not alive. Aborting passive reconnaissance${reset}\n"
+			exit 1
+		fi	
 printf "${uline}#######################################################################${reset}\n"
+echo -e "${yellow}\e[5m[+] Searching open ports....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+nmap -p- --open -T5 -v -n $website_input -oN "$HOME/aungrecon/output/nmap.txt"
 #Sundomain
 echo -e "${yellow}\e[5m[+]Findimg Subdomain......${reset}"
 printf "${uline}#######################################################################${reset}\n"
@@ -102,6 +114,7 @@ rm final.txt
 printf "${uline}#######################################################################${reset}\n"
 # Notify the user that all tasks are complete
 echo -e "${yellow}\e[5mFiltered URLs have been saved to the respective output files in the 'output' directory:${reset}"
+echo -e "${cyan}\e[5m- Nmap: $output_dir/xss_vul.txt${reset}"
 echo -e "${cyan}\e[5m- XSS: $output_dir/xss_vul.txt${reset}"
 echo -e "${cyan}\e[5m- Open Redirect: $output_dir/open_redirect_vul.txt${reset}"
 echo -e "${cyan}\e[5m- LFI: $output_dir/lfi_vul.txt${reset}"
