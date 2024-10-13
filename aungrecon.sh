@@ -45,6 +45,11 @@ printf "${green}[+] Checking if the target is alive...${reset}\n"
 			printf "\n${yellow}$website_input${red} is not alive. Aborting passive reconnaissance${reset}\n"
 			exit 1
 		fi	
+		
+printf "${uline}#######################################################################${reset}\n"
+echo -e "${yellow}\e[5m[+] Searching website info....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+whatweb -a 3 $website_input | tee "$HOME/aungrecon/output/whatweb.txt" 		
 printf "${uline}#######################################################################${reset}\n"
 echo -e "${yellow}\e[5m[+] Searching open ports....${reset}"
 printf "${uline}#######################################################################${reset}\n"
