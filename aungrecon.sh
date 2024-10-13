@@ -35,17 +35,7 @@ fi
 echo -e "${blue}[+]Normalized URL being used${reset}: $website_url"
 # Create an output directory if it doesn't exist
 output_dir="output"
-mkdir -p "$output_dir"
-
-printf "${green}[+] Checking if the target is alive...${reset}\n"
-	if ping -c 1 -W 1 "$website_input" &> /dev/null;
-	then
-		printf "\n${yellow}$website_input${reset} is alive!${reset}\n"
-		else
-			printf "\n${yellow}$website_input${red} is not alive. Aborting passive reconnaissance${reset}\n"
-			exit 1
-		fi	
-		
+mkdir -p "$output_dir"			
 printf "${uline}#######################################################################${reset}\n"
 echo -e "${yellow}\e[5m[+] Searching website info....${reset}"
 printf "${uline}#######################################################################${reset}\n"
