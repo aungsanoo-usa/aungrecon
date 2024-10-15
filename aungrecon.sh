@@ -88,7 +88,7 @@ printf "${uline}################################################################
 echo -e "${yellow}\e[5m[+]Finding XSS vulnerability....${reset}"
 printf "${uline}#######################################################################${reset}\n"
 cd $HOME/aungrecon/xss_vibes
-python3 main.py -f $HOME/aungrecon/output/final.txt -t 7 -o $HOME/aungrecon/output/xss_vul.txt.txt
+python3 main.py -f $HOME/aungrecon/output/final.txt -t 7 -o $HOME/aungrecon/output/xss_vul.txt
 printf "${uline}#######################################################################${reset}\n"
 
 #OprnRedirect
