@@ -44,6 +44,7 @@ printf "${uline}################################################################
 echo -e "${yellow}\e[5m[+] Searching open ports....${reset}"
 printf "${uline}#######################################################################${reset}\n"
 nmap -p- --open -T5 -v -n $website_input -oN "$HOME/aungrecon/output/nmap.txt"
+printf "${uline}#######################################################################${reset}\n"
 #Sundomain
 echo -e "${yellow}\e[5m[+]Findimg Subdomain......${reset}"
 printf "${uline}#######################################################################${reset}\n"
