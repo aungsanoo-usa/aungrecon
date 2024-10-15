@@ -22,7 +22,7 @@ printf "\n${yellow}Welcome to Aung Recon main script
 printf "\n${yellow}###############################${reset}\n"
 V_MY_PATH=$HOME
 # Check if the required tools are installed
-for tool in subfinder katana nmap whatweb uro httpx subzy urldedupe anew openredirex ffuf gau gf; do
+for tool in subfinder katana nmap whatweb uro httpx subzy urldedupe anew openredirex ffuf gau gf nuclei; do
     if ! command -v "$tool" &> /dev/null; then
        echo -e "${red}\e[5m[+]$tool is not installed. Please run again install.sh or install it menually before running the script.${reset}"
         exit 1
