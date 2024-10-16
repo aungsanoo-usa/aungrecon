@@ -22,7 +22,7 @@ printf "\n${yellow}Welcome to Aung Recon main script
 printf "\n${yellow}###############################${reset}\n"
 V_MY_PATH=$HOME
 # Check if the required tools are installed
-for tool in subfinder katana nmap whatweb uro httpx subzy urldedupe anew openredirex ffuf gau gf nuclei; do
+for tool in subfinder katana paramspider whatweb uro httpx subzy urldedupe anew openredirex ffuf gau gf nuclei; do
     if ! command -v "$tool" &> /dev/null; then
        echo -e "${red}\e[5m[+]$tool is not installed. Please run again install.sh or install it menually before running the script.${reset}"
         exit 1
@@ -48,10 +48,6 @@ echo -e "${yellow}\e[5m[+] Searching website info....${reset}"
 printf "${uline}#######################################################################${reset}\n"
 whatweb -a 3 $website_input | tee "$HOME/aungrecon/output/whatweb.txt" 		
 printf "${uline}#######################################################################${reset}\n"
-echo -e "${yellow}\e[5m[+] Searching open ports....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-nmap -p- --open -T5 -v -n $website_input -oN "$HOME/aungrecon/output/nmap.txt"
-printf "${uline}#######################################################################${reset}\n"
 #Sundomain
 echo -e "${yellow}\e[5m[+]Findimg Subdomain......${reset}"
 printf "${uline}#######################################################################${reset}\n"
@@ -70,13 +66,15 @@ printf "${uline}################################################################
 # SQLi
 echo -e "${yellow}\e[5m[+]Finding SQLI vulnerability....${reset}"
 printf "${uline}#######################################################################${reset}\n"
-katana -list alivesub.txt -d 5 | grep '=' | urldedupe | anew allurls.txt
+paramspider -l alivesub.txt 
+cd results
+cat *.txt > allurls.txt
 #Remove FUZZ and save as final.txt
 cat allurls.txt | sed 's/=.*/=/' > final.txt
 mv final.txt $HOME/aungrecon/output/final.txt
 cd $HOME/aungrecon/bsqli
-python3 main.py -l $HOME/aungrecon/output/final.txt -p payloads/xor.txt -t 5
-cp output.txt $HOME/aungrecon/output/sqli_vul.txt
+python3 bsqli.py 
+cp bsqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
 printf "${uline}#######################################################################${reset}\n"
 
 echo -e "${yellow}\e[5m[+] Vulnerability: Multiples vulnerabilities....${reset}"
@@ -108,19 +106,12 @@ echo -e "${yellow}\e[5m[+] Remove the intermediate output files ....${reset}"
 printf "${uline}#######################################################################${reset}\n"
 mv $HOME/aungrecon/open_redirect_vul.txt $HOME/aungrecon/output/open_redirect_vul.txt
 rm sub.txt alivesub.txt allurls.txt
-cd bsqli
-rm *.txt
-cd ..
-cd output
-rm final.txt
-
 printf "${uline}#######################################################################${reset}\n"
 # Notify the user that all tasks are complete
 echo -e "${yellow}\e[5mFiltered URLs have been saved to the respective output files in the 'output' directory:${reset}"
-echo -e "${cyan}\e[5m- Nmap: $output_dir/nmap.txt${reset}"
 echo -e "${cyan}\e[5m- XSS: $output_dir/xss_vul.txt${reset}"
 echo -e "${cyan}\e[5m- Open Redirect: $output_dir/open_redirect_vul.txt${reset}"
 echo -e "${cyan}\e[5m- LFI: $output_dir/lfi_vul.txt${reset}"
-echo -e "${cyan}\e[5m- SQLi: $output_dir/sqli_vul.txt${reset}"
+echo -e "${cyan}\e[5m- SQLi: $output_dir/bsqli_vulnerable_urls.txt${reset}"
 echo -e "${cyan}\e[5m- SQLi: $output_dir/mutiple_vulnerabilities.txt${reset}"
 printf "${uline}#######################################################################${reset}\n"
