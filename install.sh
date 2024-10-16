@@ -13,14 +13,14 @@ printf "##########################################################\n\n${NORMAL}"
 sudo apt -y update
 
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake nmap whatweb
+sudo apt install -y golang-go cmake whatweb paramspider
 
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 cd $HOME/aungrecon
 
 declare -A REPOS=(
   ["xss_vibes"]="https://github.com/faiyazahmad07/xss_vibes.git"
-  ["bsqli"]="https://github.com/KKonaNN/bsqli.git"
+  ["bsqli"]="https://github.com/aungsanoo-usa/bsqli.git"
   ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
@@ -49,7 +49,6 @@ declare -a GO_TOOLS=(
   "github.com/tomnomnom/gf"
   "github.com/tomnomnom/qsreplace"
   "github.com/PentestPad/subzy"
-  "github.com/projectdiscovery/katana/cmd/katana"
   "github.com/tomnomnom/anew"
   "github.com/projectdiscovery/nuclei/v3/cmd/nuclei"
 )
