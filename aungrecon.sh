@@ -93,7 +93,7 @@ printf "${uline}################################################################
 echo -e "${yellow}\e[5m[+] Open Redirect Testing ....${reset}"
 printf "${uline}#######################################################################${reset}\n"
 
-cat $HOME/aungrecon/allurls.txt |  openredirex -p $HOME/aungrecon/or.txt -k "FUZZ" -c 30 > $HOME/aungrecon/open_redirect_vul.txt
+cat $HOME/aungrecon/results/allurls.txt |  openredirex -p $HOME/aungrecon/or.txt -k "FUZZ" -c 30 > $HOME/aungrecon/output/open_redirect_vul.txt
 
 # LFI
 printf "${uline}#######################################################################${reset}\n"
