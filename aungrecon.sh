@@ -74,7 +74,7 @@ cat allurls.txt | sed 's/=.*/=/' > final.txt
 mv final.txt $HOME/aungrecon/output/final.txt
 cd $HOME/aungrecon/bsqli
 python3 bsqli.py 
-cp bsqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
+cp $HOME/aungrecon/bsqli/bqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
 printf "${uline}#######################################################################${reset}\n"
 
 echo -e "${yellow}\e[5m[+] Vulnerability: Multiples vulnerabilities....${reset}"
