@@ -1,14 +1,22 @@
 #!/bin/bash
-# Ansi color code variables
-red="\e[0;91m"
-blue="\e[0;94m"
-yellow="\e[0;33m"
-green="\e[0;92m"
-cyan="\e[0;36m"
-uline="\e[0;35m"
-reset="\e[0m"
 
-printf "\n${yellow}Welcome to Aung Recon main script
+# ANSI color code variables
+declare -A colors=(
+    [red]="\e[0;91m"
+    [blue]="\e[0;94m"
+    [yellow]="\e[0;33m"
+    [green]="\e[0;92m"
+    [cyan]="\e[0;36m"
+    [uline]="\e[0;35m"
+    [reset]="\e[0m"
+)
+
+output_dir="$HOME/aungrecon/output"
+tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "openredirex" "ffuf" "gau" "gf" "nuclei")
+
+# Print logo
+echo -e "${colors[yellow]}Welcome to Aung Recon main script"
+cat << "EOF"
 #              ╭━━━╮╱╱╱╱╱╱╱╱╱╭━━━╮
 #              ┃╭━╮┃╱╱╱╱╱╱╱╱╱┃╭━╮┃
 #              ┃┃╱┃┣╮╭┳━╮╭━━╮┃╰━╯┣━━┳━━┳━━┳━╮
@@ -16,118 +24,112 @@ printf "\n${yellow}Welcome to Aung Recon main script
 #              ┃╭━╮┃╰╯┃┃┃┃╰╯┃┃┃┃╰┫┃━┫╰━┫╰╯┃┃┃┃
 #              ╰╯╱╰┻━━┻╯╰┻━╮┃╰╯╰━┻━━┻━━┻━━┻╯╰╯
 #              ╱╱╱╱╱╱╱╱╱╱╭━╯┃
-#              ╱╱╱╱╱╱╱╱╱╱╰━━╯  aungsanoo.com${reset}\n"
+#              ╱╱╱╱╱╱╱╱╱╱╰━━╯  aungsanoo.com
+EOF
+echo -e "${colors[reset]}"
 
+# Tool check function
+check_tools() {
+    for tool in "${tools[@]}"; do
+        if ! command -v "$tool" &>/dev/null; then
+            echo -e "${colors[red]}[+] $tool is not installed. Please run install.sh or install it manually.${colors[reset]}"
+            exit 1
+        fi
+    done
+}
 
-printf "\n${yellow}###############################${reset}\n"
-V_MY_PATH=$HOME
-# Check if the required tools are installed
-for tool in subfinder paramspider whatweb uro httpx subzy urldedupe anew openredirex ffuf gau gf nuclei; do
-    if ! command -v "$tool" &> /dev/null; then
-       echo -e "${red}\e[5m[+]$tool is not installed. Please run again install.sh or install it menually before running the script.${reset}"
-        exit 1
+# Prepare and clean output files before each scan
+prepare_output_files() {
+    echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
+    mkdir -p "$output_dir"
+    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt bsqli_vulnerable_urls.txt multiple_vulnerabilities.txt final.txt whatweb.txt; do
+        > "$output_dir/$file"  # Truncate (empty) the files
+    done
+}
+
+# WhatWeb scan to gather website information
+run_whatweb_scan() {
+    echo -e "${colors[yellow]}[+] Running WhatWeb scan to gather website information...${colors[reset]}"
+    whatweb -a 3 "$website_url" | tee "$output_dir/whatweb.txt"
+}
+
+# Subdomain discovery and filtering
+find_subdomains() {
+    echo -e "${colors[yellow]}[+] Finding subdomains...${colors[reset]}"
+    subfinder -d "$website_input" -all -recursive > "sub.txt"
+    echo -e "${colors[yellow]}[+] Filtering alive subdomains...${colors[reset]}"
+    cat "sub.txt" | httpx -silent > "alivesub.txt"
+}
+
+# Subdomain takeover detection
+check_subdomain_takeover() {
+    echo -e "${colors[yellow]}[+] Checking for subdomain takeover...${colors[reset]}"
+    subzy run --targets "sub.txt"
+}
+
+# SQLi detection
+find_sqli_vulnerabilities() {
+    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities...${colors[reset]}"
+    paramspider -l alivesub.txt
+    cd results
+    cat *.txt | sed 's/=.*/=/' > "$output_dir/final.txt"
+    
+    # Check if final.txt exists and has content (parameterized URLs)
+    if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
+        echo -e "${colors[blue]}[+] Parameters found, proceeding with SQLi scan.${colors[reset]}"
+        cd "$HOME/aungrecon/sqli-scanner"
+        python3 scanner.py -u "$output_dir/final.txt" -p payloads_sqli.txt -b payloads_blind_sqli.txt -o bsqli_vulnerable_urls.txt
+        cp bsqli_vulnerable_urls.txt "$output_dir/bsqli_vulnerable_urls.txt"
+    else
+        echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping SQLi scanning.${colors[reset]}"
     fi
-done
-# Ask the user for the website URL or domain
-read -p "[+]Enter the website domain:" website_input
+}
 
-# Normalize the input: Add "https://" if the input is just a domain without protocol
-if [[ ! $website_input =~ ^https?:// ]]; then
-    website_url="https://$website_input"
-else
-    website_url="$website_input"
-fi
+# Main vulnerabilities scan (Nuclei)
+run_nuclei_scan() {
+    echo -e "${colors[yellow]}[+] Running Nuclei for multiple vulnerabilities...${colors[reset]}"
+    nuclei -l "alivesub.txt" -t "$HOME/aungrecon/priv8-Nuclei" -severity low,medium,high,critical -o "$output_dir/multiple_vulnerabilities.txt"
+}
 
-# Inform the user of the normalized URL being used
-echo -e "${blue}[+]Normalized URL being used${reset}: $website_url"
-# Create an output directory if it doesn't exist
-output_dir="output"
-mkdir -p "$output_dir"	
-# Clean or overwrite output files
-echo -e "${BLUE}[+] Cleaning and preparing output files...${NC}"
-> $output_dir/xss_vul.txt
-> $output_dir/open_redirect_vul.txt
-> $output_dir/lfi_vul.txt
-> $output_dir/bsqli_vulnerable_urls.txt
-> $output_dir/mutiple_vulnerabilities.txt
-> $output_dir/final.txt
-> $output_dir/whatweb.txt
-		
-printf "${uline}#######################################################################${reset}\n"
-echo -e "${yellow}\e[5m[+] Searching website info....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-whatweb -a 3 $website_url | tee "$HOME/aungrecon/output/whatweb.txt" 		
-printf "${uline}#######################################################################${reset}\n"
-#Sundomain
-echo -e "${yellow}\e[5m[+]Findimg Subdomain......${reset}"
-printf "${uline}#######################################################################${reset}\n"
-subfinder -d $website_input -all -recursive > "sub.txt" 
-printf "${uline}#######################################################################${reset}\n"
-echo -e "${yellow}\e[5m[+] Filtering Alive Sundomains....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-#And then we gona check which subdomain are alive using https tool
-cat "sub.txt" | httpx -v > "alivesub.txt"
-printf "${uline}#######################################################################${reset}\n"
-#takeover
-echo -e "${yellow}\e[5m[+] check subdomain takeover....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-subzy run --targets "sub.txt"
-printf "${uline}#######################################################################${reset}\n"
-# SQLi
-echo -e "${yellow}\e[5m[+]Finding SQLI vulnerability....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-paramspider -l alivesub.txt 
-cd results
-cat *.txt > allurls.txt
-#Remove FUZZ and save as final.txt
-cat allurls.txt | sed 's/=.*/=/' > final.txt
-mv final.txt $HOME/aungrecon/output/final.txt
+# Other vulnerability tests (XSS, Open Redirect, LFI)
+run_vulnerability_tests() {
+    echo -e "${colors[yellow]}[+] Finding XSS vulnerabilities...${colors[reset]}"
+    python3 "$HOME/aungrecon/xss_vibes/main.py" -f "$output_dir/final.txt" -t 7 -o "$output_dir/xss_vul.txt"
+    echo -e "${colors[yellow]}[+] Testing for Open Redirect vulnerabilities...${colors[reset]}"
+    cat "$HOME/aungrecon/results/allurls.txt" | openredirex -p "$HOME/aungrecon/or.txt" -k "FUZZ" -c 30 > "$output_dir/open_redirect_vul.txt"
+    echo -e "${colors[yellow]}[+] Testing for LFI vulnerabilities...${colors[reset]}"
+    gau "$website_input" | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | ffuf -u {} -w lfi.txt -c -mr "root:x:0:" -v > "$output_dir/lfi_vul.txt"
+}
 
-if [ ! -f $HOME/aungrecon/output/final.txt ]; then
-  echo -e "${BLUE}[!] No parameters found by ParamSpider, skipping Scanning.${NC}"
-  exit 1
-fi
+# Cleanup intermediate files
+cleanup_files() {
+    echo -e "${colors[yellow]}[+] Cleaning up intermediate files...${colors[reset]}"
+    rm -f sub.txt alivesub.txt allurls.txt
+}
 
-cd $HOME/aungrecon/sqli-scanner
-python3 scanner.py -u $HOME/aungrecon/output/final.txt -p payloads_sqli.txt -b payloads_blind_sqli.txt -o bsqli_vulnerable_urls.txt
-cp $HOME/aungrecon/sqli-scanner/bsqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
-printf "${uline}#######################################################################${reset}\n"
+# Final output message
+output_summary() {
+    echo -e "${colors[green]}Filtered URLs have been saved to the respective output files in the 'output' directory:${colors[reset]}"
+    echo -e "${colors[cyan]}- XSS: $output_dir/xss_vul.txt${colors[reset]}"
+    echo -e "${colors[cyan]}- Open Redirect: $output_dir/open_redirect_vul.txt${colors[reset]}"
+    echo -e "${colors[cyan]}- LFI: $output_dir/lfi_vul.txt${colors[reset]}"
+    echo -e "${colors[cyan]}- SQLi: $output_dir/bsqli_vulnerable_urls.txt${colors[reset]}"
+    echo -e "${colors[cyan]}- Multiple vulnerabilities: $output_dir/multiple_vulnerabilities.txt${colors[reset]}"
+}
 
-echo -e "${yellow}\e[5m[+] Vulnerability: Multiples vulnerabilities....${reset}"
-echo -e "${yellow}\e[5mRunning multiple templates to discover vulnerabilities....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-nuclei -l $HOME/aungrecon/alivesub.txt -t $HOME/aungrecon/priv8-Nuclei -severity low,medium,high,critical  -o "$HOME/aungrecon/output/mutiple_vulnerabilities.txt"
-printf "${uline}#######################################################################${reset}\n"
-# XSS
-echo -e "${yellow}\e[5m[+]Finding XSS vulnerability....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-cd $HOME/aungrecon/xss_vibes
-python3 main.py -f $HOME/aungrecon/output/final.txt -t 7 -o $HOME/aungrecon/output/xss_vul.txt
-printf "${uline}#######################################################################${reset}\n"
+# Main script execution flow
+check_tools
+read -p "[+] Enter the website domain: " website_input
+website_url="${website_input#http://}"
+website_url="${website_input#https://}"
+website_url="https://$website_url"
 
-#OprnRedirect
-echo -e "${yellow}\e[5m[+] Open Redirect Testing ....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-
-cat $HOME/aungrecon/results/allurls.txt |  openredirex -p $HOME/aungrecon/or.txt -k "FUZZ" -c 30 > $HOME/aungrecon/output/open_redirect_vul.txt
-
-# LFI
-printf "${uline}#######################################################################${reset}\n"
-echo -e "${yellow}\e[5m[+]Finding LFI vulnerability....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-cd ..
-echo $website_input | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w lfi.txt -c -mr "root:x:0:" -v > $HOME/aungrecon/output/lfi_vul.txt
-printf "${uline}#######################################################################${reset}\n"
-echo -e "${yellow}\e[5m[+] Remove the intermediate output files ....${reset}"
-printf "${uline}#######################################################################${reset}\n"
-mv $HOME/aungrecon/open_redirect_vul.txt $HOME/aungrecon/output/open_redirect_vul.txt
-rm sub.txt alivesub.txt allurls.txt
-printf "${uline}#######################################################################${reset}\n"
-# Notify the user that all tasks are complete
-echo -e "${yellow}\e[5mFiltered URLs have been saved to the respective output files in the 'output' directory:${reset}"
-echo -e "${cyan}\e[5m- XSS: $output_dir/xss_vul.txt${reset}"
-echo -e "${cyan}\e[5m- Open Redirect: $output_dir/open_redirect_vul.txt${reset}"
-echo -e "${cyan}\e[5m- LFI: $output_dir/lfi_vul.txt${reset}"
-echo -e "${cyan}\e[5m- SQLi: $output_dir/bsqli_vulnerable_urls.txt${reset}"
-echo -e "${cyan}\e[5m- SQLi: $output_dir/mutiple_vulnerabilities.txt${reset}"
-printf "${uline}#######################################################################${reset}\n"
+prepare_output_files  # Clean and overwrite files each scan
+run_whatweb_scan      # Run WhatWeb scan first
+find_subdomains
+check_subdomain_takeover
+find_sqli_vulnerabilities  # Check if final.txt exists and is not empty before SQLi scan
+run_nuclei_scan
+run_vulnerability_tests
+cleanup_files
+output_summary
