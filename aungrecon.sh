@@ -74,7 +74,7 @@ cat allurls.txt | sed 's/=.*/=/' > final.txt
 mv final.txt $HOME/aungrecon/output/final.txt
 cd $HOME/aungrecon/sqli-scanner
 python3 scanner.py -u $HOME/aungrecon/output/final.txt -p payloads_sqli.txt -b payloads_blind_sqli.txt -o bsqli_vulnerable_urls.txt
-cp $HOME/aungrecon/sqli-scanner/bqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
+cp $HOME/aungrecon/sqli-scanner/bsqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
 printf "${uline}#######################################################################${reset}\n"
 
 echo -e "${yellow}\e[5m[+] Vulnerability: Multiples vulnerabilities....${reset}"
