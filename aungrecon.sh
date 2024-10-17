@@ -42,11 +42,21 @@ fi
 echo -e "${blue}[+]Normalized URL being used${reset}: $website_url"
 # Create an output directory if it doesn't exist
 output_dir="output"
-mkdir -p "$output_dir"			
+mkdir -p "$output_dir"	
+# Clean or overwrite output files
+echo -e "${BLUE}[+] Cleaning and preparing output files...${NC}"
+> $output_dir/xss_vul.txt
+> $output_dir/open_redirect_vul.txt
+> $output_dir/lfi_vul.txt
+> $output_dir/bsqli_vulnerable_urls.txt
+> $output_dir/mutiple_vulnerabilities.txt
+> $output_dir/final.txt
+> $output_dir/whatweb.txt
+		
 printf "${uline}#######################################################################${reset}\n"
 echo -e "${yellow}\e[5m[+] Searching website info....${reset}"
 printf "${uline}#######################################################################${reset}\n"
-whatweb -a 3 $website_input | tee "$HOME/aungrecon/output/whatweb.txt" 		
+whatweb -a 3 $website_url | tee "$HOME/aungrecon/output/whatweb.txt" 		
 printf "${uline}#######################################################################${reset}\n"
 #Sundomain
 echo -e "${yellow}\e[5m[+]Findimg Subdomain......${reset}"
@@ -72,6 +82,12 @@ cat *.txt > allurls.txt
 #Remove FUZZ and save as final.txt
 cat allurls.txt | sed 's/=.*/=/' > final.txt
 mv final.txt $HOME/aungrecon/output/final.txt
+
+if [ ! -f $HOME/aungrecon/output/final.txt ]; then
+  echo -e "${BLUE}[!] No parameters found by ParamSpider, skipping Scanning.${NC}"
+  exit 1
+fi
+
 cd $HOME/aungrecon/sqli-scanner
 python3 scanner.py -u $HOME/aungrecon/output/final.txt -p payloads_sqli.txt -b payloads_blind_sqli.txt -o bsqli_vulnerable_urls.txt
 cp $HOME/aungrecon/sqli-scanner/bsqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
