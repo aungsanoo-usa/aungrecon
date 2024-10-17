@@ -1,84 +1,117 @@
 #!/bin/bash
+# Ansi color code variables
+red="\e[0;91m"
+blue="\e[0;94m"
+yellow="\e[0;33m"
+green="\e[0;92m"
+cyan="\e[0;36m"
+uline="\e[0;35m"
+reset="\e[0m"
 
-BOLD=$(tput bold)
-YELLOW=$(tput setaf 3)
-MAGENTA=$(tput setaf 5)
-CYAN=$(tput setaf 6)
-NORMAL=$(tput sgr0)
+printf "\n${yellow}Welcome to Aung Recon main script
+#              ╭━━━╮╱╱╱╱╱╱╱╱╱╭━━━╮
+#              ┃╭━╮┃╱╱╱╱╱╱╱╱╱┃╭━╮┃
+#              ┃┃╱┃┣╮╭┳━╮╭━━╮┃╰━╯┣━━┳━━┳━━┳━╮
+#              ┃╰━╯┃┃┃┃╭╮┫╭╮┃┃╭╮╭┫┃━┫╭━┫╭╮┃╭╮╮
+#              ┃╭━╮┃╰╯┃┃┃┃╰╯┃┃┃┃╰┫┃━┫╰━┫╰╯┃┃┃┃
+#              ╰╯╱╰┻━━┻╯╰┻━╮┃╰╯╰━┻━━┻━━┻━━┻╯╰╯
+#              ╱╱╱╱╱╱╱╱╱╱╭━╯┃
+#              ╱╱╱╱╱╱╱╱╱╱╰━━╯  aungsanoo.com${reset}\n"
 
-printf "${BOLD}${YELLOW}##########################################################\n"
-printf "##### Welcome to the AungRecon dependency installer #####\n"
-printf "##########################################################\n\n${NORMAL}"
 
-sudo apt -y update
-
-printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake whatweb paramspider
-
-printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
-cd $HOME/aungrecon
-
-declare -A REPOS=(
-  ["xss_vibes"]="https://github.com/faiyazahmad07/xss_vibes.git"
-  ["bsqli"]="https://github.com/aungsanoo-usa/sqli-scanner.git"
-  ["openredirex"]="https://github.com/devanshbatham/openredirex"
-  ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
-  ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
-  ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
-)
-
-for repo in "${!REPOS[@]}"; do
-  printf "${CYAN}Cloning ${repo}\n${NORMAL}"
-  git clone "${REPOS[$repo]}"
-  cd "$repo"
-  if [ -f requirements.txt ]; then
-    pip3 install -r requirements.txt --break-system-packages
-  fi
-  cd ..
- 
+printf "\n${yellow}###############################${reset}\n"
+V_MY_PATH=$HOME
+# Check if the required tools are installed
+for tool in subfinder paramspider whatweb uro httpx subzy urldedupe anew openredirex ffuf gau gf nuclei; do
+    if ! command -v "$tool" &> /dev/null; then
+       echo -e "${red}\e[5m[+]$tool is not installed. Please run again install.sh or install it menually before running the script.${reset}"
+        exit 1
+    fi
 done
+# Ask the user for the website URL or domain
+read -p "[+]Enter the website domain:" website_input
 
-mkdir -p ~/.gf
-cp -r Gf-Patterns/* ~/.gf
+# Normalize the input: Add "https://" if the input is just a domain without protocol
+if [[ ! $website_input =~ ^https?:// ]]; then
+    website_url="https://$website_input"
+else
+    website_url="$website_input"
+fi
 
-printf "${BOLD}${MAGENTA}Installing GO tools\n${NORMAL}"
-declare -a GO_TOOLS=(
-  "github.com/projectdiscovery/subfinder/v2/cmd/subfinder"
-  "github.com/projectdiscovery/httpx/cmd/httpx"
-  "github.com/lc/gau"
-  "github.com/tomnomnom/gf"
-  "github.com/tomnomnom/qsreplace"
-  "github.com/PentestPad/subzy"
-  "github.com/tomnomnom/anew"
-  "github.com/projectdiscovery/nuclei/v3/cmd/nuclei"
-)
+# Inform the user of the normalized URL being used
+echo -e "${blue}[+]Normalized URL being used${reset}: $website_url"
+# Create an output directory if it doesn't exist
+output_dir="output"
+mkdir -p "$output_dir"			
+printf "${uline}#######################################################################${reset}\n"
+echo -e "${yellow}\e[5m[+] Searching website info....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+whatweb -a 3 $website_input | tee "$HOME/aungrecon/output/whatweb.txt" 		
+printf "${uline}#######################################################################${reset}\n"
+#Sundomain
+echo -e "${yellow}\e[5m[+]Findimg Subdomain......${reset}"
+printf "${uline}#######################################################################${reset}\n"
+subfinder -d $website_input -all -recursive > "sub.txt" 
+printf "${uline}#######################################################################${reset}\n"
+echo -e "${yellow}\e[5m[+] Filtering Alive Sundomains....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+#And then we gona check which subdomain are alive using https tool
+cat "sub.txt" | httpx -v > "alivesub.txt"
+printf "${uline}#######################################################################${reset}\n"
+#takeover
+echo -e "${yellow}\e[5m[+] check subdomain takeover....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+subzy run --targets "sub.txt"
+printf "${uline}#######################################################################${reset}\n"
+# SQLi
+echo -e "${yellow}\e[5m[+]Finding SQLI vulnerability....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+paramspider -l alivesub.txt 
+cd results
+cat *.txt > allurls.txt
+#Remove FUZZ and save as final.txt
+cat allurls.txt | sed 's/=.*/=/' > final.txt
+mv final.txt $HOME/aungrecon/output/final.txt
+cd $HOME/aungrecon/sqli-scanner
+python3 scanner.py -u $HOME/aungrecon/output/final.txt -p payloads_sqli.txt -b payloads_blind_sqli.txt -o bsqli_vulnerable_urls.txt
+cp $HOME/aungrecon/sqli-scanner/bqli_vulnerable_urls.txt $HOME/aungrecon/output/bsqli_vulnerable_urls.txt
+printf "${uline}#######################################################################${reset}\n"
 
-for tool in "${GO_TOOLS[@]}"; do
-  printf "${CYAN}Installing $(basename $tool)\n${NORMAL}"
-  go install "$tool@latest"
-  sudo cp "$HOME/go/bin/$(basename $tool)" /usr/local/bin/
-done
+echo -e "${yellow}\e[5m[+] Vulnerability: Multiples vulnerabilities....${reset}"
+echo -e "${yellow}\e[5mRunning multiple templates to discover vulnerabilities....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+nuclei -l $HOME/aungrecon/alivesub.txt -t $HOME/aungrecon/priv8-Nuclei -severity low,medium,high,critical  -o "$HOME/aungrecon/output/mutiple_vulnerabilities.txt"
+printf "${uline}#######################################################################${reset}\n"
+# XSS
+echo -e "${yellow}\e[5m[+]Finding XSS vulnerability....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+cd $HOME/aungrecon/xss_vibes
+python3 main.py -f $HOME/aungrecon/output/final.txt -t 7 -o $HOME/aungrecon/output/xss_vul.txt
+printf "${uline}#######################################################################${reset}\n"
 
-printf "${CYAN}Installing ffuf\n${NORMAL}"
-sudo apt install ffuf
+#OprnRedirect
+echo -e "${yellow}\e[5m[+] Open Redirect Testing ....${reset}"
+printf "${uline}#######################################################################${reset}\n"
 
-printf "${CYAN}openredirex\n${NORMAL}"
-cd $HOME/aungrecon/openredirex
-chmod +x setup.sh
-sudo bash setup.sh
+cat $HOME/aungrecon/results/allurls.txt |  openredirex -p $HOME/aungrecon/or.txt -k "FUZZ" -c 30 > $HOME/aungrecon/output/open_redirect_vul.txt
+
+# LFI
+printf "${uline}#######################################################################${reset}\n"
+echo -e "${yellow}\e[5m[+]Finding LFI vulnerability....${reset}"
+printf "${uline}#######################################################################${reset}\n"
 cd ..
-
-printf "${CYAN}Installing uro\n${NORMAL}"
-sudo pip3 install uro --break-system-packages
-sudo mv ~/.local/bin/uro /usr/local/bin
-
-printf "${CYAN}Installing pystyle\n${NORMAL}"
-sudo pip3 install pystyle --break-system-packages
-
-printf "${CYAN}Installing urldedupe\n${NORMAL}"
-cd $HOME/aungrecon/urldedupe
-cmake CMakeLists.txt
-make
-sudo mv $HOME/aungrecon/urldedupe/urldedupe /usr/local/bin
-
-printf "${BOLD}${YELLOW}Installation completed successfully!\n${NORMAL}"
+echo $website_input | gau | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | sort -u | xargs -I{} ffuf -u {} -w lfi.txt -c -mr "root:x:0:" -v > $HOME/aungrecon/output/lfi_vul.txt
+printf "${uline}#######################################################################${reset}\n"
+echo -e "${yellow}\e[5m[+] Remove the intermediate output files ....${reset}"
+printf "${uline}#######################################################################${reset}\n"
+mv $HOME/aungrecon/open_redirect_vul.txt $HOME/aungrecon/output/open_redirect_vul.txt
+rm sub.txt alivesub.txt allurls.txt
+printf "${uline}#######################################################################${reset}\n"
+# Notify the user that all tasks are complete
+echo -e "${yellow}\e[5mFiltered URLs have been saved to the respective output files in the 'output' directory:${reset}"
+echo -e "${cyan}\e[5m- XSS: $output_dir/xss_vul.txt${reset}"
+echo -e "${cyan}\e[5m- Open Redirect: $output_dir/open_redirect_vul.txt${reset}"
+echo -e "${cyan}\e[5m- LFI: $output_dir/lfi_vul.txt${reset}"
+echo -e "${cyan}\e[5m- SQLi: $output_dir/bsqli_vulnerable_urls.txt${reset}"
+echo -e "${cyan}\e[5m- SQLi: $output_dir/mutiple_vulnerabilities.txt${reset}"
+printf "${uline}#######################################################################${reset}\n"
