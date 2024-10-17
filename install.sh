@@ -13,13 +13,14 @@ printf "##########################################################\n\n${NORMAL}"
 sudo apt -y update
 
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake whatweb paramspider
+sudo apt install -y golang-go cmake whatweb 
 
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 cd $HOME/aungrecon
 
 declare -A REPOS=(
   ["xss_vibes"]="https://github.com/faiyazahmad07/xss_vibes.git"
+  ["paramspider"]="https://github.com/devanshbatham/paramspider"
   ["sqli-scanner"]="https://github.com/aungsanoo-usa/sqli-scanner.git"
   ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
@@ -66,6 +67,11 @@ printf "${CYAN}openredirex\n${NORMAL}"
 cd $HOME/aungrecon/openredirex
 chmod +x setup.sh
 sudo bash setup.sh
+cd ..
+
+printf "${CYAN}paramspider\n${NORMAL}"
+cd $HOME/aungrecon/paramspider
+pip3 install .
 cd ..
 
 printf "${CYAN}Installing uro\n${NORMAL}"
