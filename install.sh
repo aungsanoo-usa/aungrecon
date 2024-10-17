@@ -71,7 +71,7 @@ cd ..
 
 printf "${CYAN}paramspider\n${NORMAL}"
 cd $HOME/aungrecon/paramspider
-pip3 install .
+pip3 install . --break-system-packages
 cd ..
 
 printf "${CYAN}Installing uro\n${NORMAL}"
