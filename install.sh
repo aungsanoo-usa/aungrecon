@@ -20,7 +20,7 @@ cd $HOME/aungrecon
 
 declare -A REPOS=(
   ["xss_vibes"]="https://github.com/faiyazahmad07/xss_vibes.git"
-  ["bsqli"]="https://github.com/aungsanoo-usa/bsqli.git"
+  ["bsqli"]="https://github.com/aungsanoo-usa/sqli-scanner.git"
   ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
