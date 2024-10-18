@@ -206,5 +206,6 @@ find_sqli_vulnerabilities  # SQLMap scan for detection only (no attack)
 run_lfi_scan           # LFI scan using ffuf
 run_open_redirect_scan # Open Redirect scan using OpenRedireX
 run_xss_scan           # XSS detection with DalFox and custom payloads
+run_nuclei_scan
 cleanup_files
 output_summary
