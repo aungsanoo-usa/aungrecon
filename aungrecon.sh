@@ -84,7 +84,7 @@ find_sqli_vulnerabilities() {
             echo -e "${colors[blue]}[+] Testing $url with SQLMap...${colors[reset]}"
             
             # Run SQLMap on the current URL
-            sqlmap -u "$url" --batch --level=2 --risk=2 --threads=10 --ignore-redirects --technique=BEUST --dbms=mysql --output-dir="$output_dir/sqlmap_results"
+            sqlmap -u "$url" --batch --level=1 --risk=1 --smart --technique=BEU --crawl=0 --random-agent --ignore-redirects --output-dir="$output_dir/sqlmap_results"
             
         done < "$output_dir/final.txt"
         
