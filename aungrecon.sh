@@ -12,7 +12,7 @@ declare -A colors=(
 )
 
 output_dir="$HOME/aungrecon/output"
-tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "openredirex" "ffuf" "gau" "gf" "nuclei")
+tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "sqlmap" "urldedupe" "anew" "openredirex" "ffuf" "gau" "gf" "nuclei")
 
 # Print logo
 echo -e "${colors[yellow]}Welcome to Aung Recon main script"
@@ -67,19 +67,29 @@ check_subdomain_takeover() {
     subzy run --targets "sub.txt"
 }
 
-# SQLi detection
+# SQLi detection using SQLMap for all URLs in final.txt
 find_sqli_vulnerabilities() {
     echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities...${colors[reset]}"
     paramspider -l alivesub.txt
     cd results
-    cat *.txt | sed 's/=.*/=/' > "$output_dir/final.txt"
+    cat *.txt > allurls.txt
+    cat allurls.txt | sed 's/=.*/=/' > "$output_dir/final.txt"
     
     # Check if final.txt exists and has content (parameterized URLs)
     if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
-        echo -e "${colors[blue]}[+] Parameters found, proceeding with SQLi scan.${colors[reset]}"
-        cd "$HOME/aungrecon/sqli-scanner"
-        python3 scanner.py -u "$output_dir/final.txt" -p payloads_sqli.txt -b payloads_blind_sqli.txt -o bsqli_vulnerable_urls.txt
-        cp bsqli_vulnerable_urls.txt "$output_dir/bsqli_vulnerable_urls.txt"
+        echo -e "${colors[blue]}[+] Parameters found, proceeding with SQLMap scan.${colors[reset]}"
+        
+        # Loop through each URL in final.txt and run SQLMap
+        while IFS= read -r url; do
+            echo -e "${colors[blue]}[+] Testing $url with SQLMap...${colors[reset]}"
+            
+            # Run SQLMap on the current URL
+            sqlmap -u "$url" --batch --level=2 --risk=2 --threads=10 --ignore-redirects --technique=BEUST --dbms=mysql --output-dir="$output_dir/sqlmap_results"
+            
+        done < "$output_dir/final.txt"
+        
+        echo -e "${colors[green]}[+] SQLMap scan completed. Results saved in the output directory.${colors[reset]}"
+        
     else
         echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping SQLi scanning.${colors[reset]}"
     fi
@@ -88,7 +98,7 @@ find_sqli_vulnerabilities() {
 # Main vulnerabilities scan (Nuclei)
 run_nuclei_scan() {
     echo -e "${colors[yellow]}[+] Running Nuclei for multiple vulnerabilities...${colors[reset]}"
-    nuclei -l "alivesub.txt" -t "$HOME/aungrecon/priv8-Nuclei" -severity low,medium,high,critical -o "$output_dir/multiple_vulnerabilities.txt"
+    nuclei -l "$HOME/aungrecon/alivesub.txt" -t "$HOME/aungrecon/priv8-Nuclei" -severity low,medium,high,critical -o "$output_dir/multiple_vulnerabilities.txt"
 }
 
 # Other vulnerability tests (XSS, Open Redirect, LFI)
@@ -104,7 +114,7 @@ run_vulnerability_tests() {
 # Cleanup intermediate files
 cleanup_files() {
     echo -e "${colors[yellow]}[+] Cleaning up intermediate files...${colors[reset]}"
-    rm -f sub.txt alivesub.txt allurls.txt
+    rm -f sub.txt alivesub.txt $HOME/aungrecon/results/allurls.txt 
 }
 
 # Final output message
@@ -128,7 +138,7 @@ prepare_output_files  # Clean and overwrite files each scan
 run_whatweb_scan      # Run WhatWeb scan first
 find_subdomains
 check_subdomain_takeover
-find_sqli_vulnerabilities  # Check if final.txt exists and is not empty before SQLi scan
+find_sqli_vulnerabilities  # SQLMap scan for all URLs in final.txt
 run_nuclei_scan
 run_vulnerability_tests
 cleanup_files
