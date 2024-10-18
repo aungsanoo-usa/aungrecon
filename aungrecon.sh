@@ -12,7 +12,7 @@ declare -A colors=(
 )
 
 output_dir="$HOME/aungrecon/output"
-tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "openredirex" "ffuf" "gau" "gf" "nuclei" "dalfox")
+tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox")
 
 # Print logo
 echo -e "${colors[yellow]}##########################################################"
