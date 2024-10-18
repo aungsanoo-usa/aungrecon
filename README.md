@@ -25,6 +25,7 @@ Before you can use **AungRecon**, ensure you have the following tools installed 
 - `uro`
 - `httpx`
 - `subzy`
+- `sqlmap`
 - `urldedupe`
 - `anew`
 - `openredirex`
