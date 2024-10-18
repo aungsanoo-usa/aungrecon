@@ -12,10 +12,12 @@ declare -A colors=(
 )
 
 output_dir="$HOME/aungrecon/output"
-tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "sqlmap" "urldedupe" "anew" "openredirex" "ffuf" "gau" "gf" "nuclei")
+tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "openredirex" "ffuf" "gau" "gf" "nuclei" "dalfox")
 
 # Print logo
-echo -e "${colors[yellow]}Welcome to Aung Recon main script"
+echo -e "${colors[yellow]}##########################################################"
+echo -e "##### Welcome to the AungRecon main script #####"
+echo -e "##########################################################${colors[reset]}"
 cat << "EOF"
 #              ╭━━━╮╱╱╱╱╱╱╱╱╱╭━━━╮
 #              ┃╭━╮┃╱╱╱╱╱╱╱╱╱┃╭━╮┃
@@ -42,7 +44,7 @@ check_tools() {
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
     mkdir -p "$output_dir"
-    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt multiple_vulnerabilities.txt final.txt whatweb.txt; do
+    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt bsqli_vulnerable_urls.txt multiple_vulnerabilities.txt final.txt whatweb.txt; do
         > "$output_dir/$file"  # Truncate (empty) the files
     done
 }
@@ -56,65 +58,100 @@ run_whatweb_scan() {
 # Subdomain discovery and filtering
 find_subdomains() {
     echo -e "${colors[yellow]}[+] Finding subdomains...${colors[reset]}"
-    subfinder -d "$website_input" -all -recursive > "sub.txt"
+    subfinder -d "$website_input" -all -recursive > "$output_dir/subdomains.txt"
     echo -e "${colors[yellow]}[+] Filtering alive subdomains...${colors[reset]}"
-    cat "sub.txt" | httpx -silent > "alivesub.txt"
+    cat "$output_dir/subdomains.txt" | httpx -silent > "$output_dir/alivesub.txt"
 }
 
 # Subdomain takeover detection
 check_subdomain_takeover() {
     echo -e "${colors[yellow]}[+] Checking for subdomain takeover...${colors[reset]}"
-    subzy run --targets "sub.txt"
+    subzy run --targets "$output_dir/subdomains.txt"
 }
 
-# SQLi detection using SQLMap for all URLs in final.txt
+# SQLi detection using SQLMap for detection only (no attack)
 find_sqli_vulnerabilities() {
-    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities...${colors[reset]}"
-    paramspider -l alivesub.txt
+    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities (detection only, no attack)...${colors[reset]}"
+    paramspider -l "$output_dir/alivesub.txt"
     cd results
     cat *.txt > allurls.txt
     cat allurls.txt | sed 's/=.*/=/' > "$output_dir/final.txt"
     
     # Check if final.txt exists and has content (parameterized URLs)
     if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
-        echo -e "${colors[blue]}[+] Parameters found, proceeding with SQLMap scan.${colors[reset]}"
+        echo -e "${colors[blue]}[+] Parameters found, proceeding with SQLMap detection scan.${colors[reset]}"
         
-        # Loop through each URL in final.txt and run SQLMap
+        # Loop through each URL in final.txt and run SQLMap for detection only
         while IFS= read -r url; do
-            echo -e "${colors[blue]}[+] Testing $url with SQLMap...${colors[reset]}"
+            echo -e "${colors[blue]}[+] Testing $url with SQLMap (detection only)...${colors[reset]}"
             
-            # Run SQLMap on the current URL
-            sqlmap -u "$url" --batch --level=1 --risk=1 --smart --technique=BEU --crawl=0 --random-agent --ignore-redirects --output-dir="$output_dir/sqlmap_results"
+            # SQLMap command for detection only (no attack)
+            sqlmap -u "$url" --batch --smart --level=1 --risk=1 --technique=BEU --output-dir="$output_dir/sqlmap_results"
             
         done < "$output_dir/final.txt"
         
-        echo -e "${colors[green]}[+] SQLMap scan completed. Results saved in the output directory.${colors[reset]}"
-        
+        echo -e "${colors[green]}[+] SQLMap detection scan completed. Results saved in the output directory.${colors[reset]}"
     else
-        echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping SQLi scanning.${colors[reset]}"
+        echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping SQLi detection scan.${colors[reset]}"
     fi
 }
 
-# Main vulnerabilities scan (Nuclei)
-run_nuclei_scan() {
-    echo -e "${colors[yellow]}[+] Running Nuclei for multiple vulnerabilities...${colors[reset]}"
-    nuclei -l "$HOME/aungrecon/alivesub.txt" -t "$HOME/aungrecon/priv8-Nuclei" -severity low,medium,high,critical -o "$output_dir/multiple_vulnerabilities.txt"
+# LFI detection for all subdomains using ffuf
+run_lfi_scan() {
+    echo -e "${colors[yellow]}[+] Testing for LFI vulnerabilities on all subdomains using ffuf...${colors[reset]}"
+    
+    # LFI payload file path
+    lfi_payloads="$HOME/aungrecon/lfi.txt"
+    
+    if [[ -f "$lfi_payloads" ]]; then
+        # Use ffuf to scan all alive subdomains for LFI vulnerabilities
+        while IFS= read -r url; do
+            echo -e "${colors[blue]}[+] Testing $url for LFI vulnerabilities...${colors[reset]}"
+            gau "$url" | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | ffuf -u {} -w "$lfi_payloads" -c -mr "root:x:0:" -o "$output_dir/lfi_vul.txt"
+        done < "$output_dir/alivesub.txt"
+        
+        echo -e "${colors[green]}[+] LFI scan completed for all subdomains. Results saved in lfi_vul.txt.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] LFI payload file not found. Skipping LFI scan.${colors[reset]}"
+    fi
 }
 
-# Other vulnerability tests (XSS, Open Redirect, LFI)
-run_vulnerability_tests() {
-    echo -e "${colors[yellow]}[+] Finding XSS vulnerabilities...${colors[reset]}"
-    python3 "$HOME/aungrecon/xss_vibes/main.py" -f "$output_dir/final.txt" -t 7 -o "$output_dir/xss_vul.txt"
-    echo -e "${colors[yellow]}[+] Testing for Open Redirect vulnerabilities...${colors[reset]}"
-    cat "$HOME/aungrecon/results/allurls.txt" | openredirex -p "$HOME/aungrecon/or.txt" -k "FUZZ" -c 30 > "$output_dir/open_redirect_vul.txt"
-    echo -e "${colors[yellow]}[+] Testing for LFI vulnerabilities...${colors[reset]}"
-    gau "$website_input" | gf lfi | uro | sed 's/=.*/=/' | qsreplace "FUZZ" | ffuf -u {} -w lfi.txt -c -mr "root:x:0:" -v > "$output_dir/lfi_vul.txt"
+# Open Redirect detection using OpenRedireX
+run_open_redirect_scan() {
+    echo -e "${colors[yellow]}[+] Testing for Open Redirect vulnerabilities using OpenRedireX...${colors[reset]}"
+    
+    gau "$website_input" | gf redirect | uro | sed 's/=.*/=/' | openredirex -p "$HOME/aungrecon/or.txt" -k "FUZZ" -c 30 > "$output_dir/open_redirect_vul.txt"
+    
+    echo -e "${colors[green]}[+] Open Redirect scan completed. Results saved in open_redirect_vul.txt.${colors[reset]}"
+}
+
+# XSS detection with DalFox using custom payloads
+run_xss_scan() {
+    echo -e "${colors[yellow]}[+] Finding XSS vulnerabilities using DalFox with custom payloads...${colors[reset]}"
+    
+    # Path to the custom payload file
+    payload_file="$HOME/aungrecon/xss.txt"
+    
+    # Use DalFox to scan URLs for XSS vulnerabilities with custom payloads
+    if [[ -f "$payload_file" ]]; then
+        while IFS= read -r url; do
+            echo -e "${colors[blue]}[+] Testing $url for XSS with DalFox and custom payloads...${colors[reset]}"
+            
+            # DalFox scan for XSS using custom payloads
+            dalfox file "$output_dir/final.txt" --skip-mining --silence --p "$payload_file" --output "$output_dir/xss_vul.txt"
+            
+        done < "$output_dir/final.txt"
+        
+        echo -e "${colors[green]}[+] DalFox XSS scan completed with custom payloads. Results saved in xss_vul.txt.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] Custom payload file not found. Skipping XSS scan.${colors[reset]}"
+    fi
 }
 
 # Cleanup intermediate files
 cleanup_files() {
     echo -e "${colors[yellow]}[+] Cleaning up intermediate files...${colors[reset]}"
-    rm -f sub.txt alivesub.txt $HOME/aungrecon/results/allurls.txt 
+    rm -f "$output_dir/subdomains.txt" "$output_dir/alivesub.txt" "$output_dir/allurls.txt"
 }
 
 # Final output message
@@ -123,7 +160,7 @@ output_summary() {
     echo -e "${colors[cyan]}- XSS: $output_dir/xss_vul.txt${colors[reset]}"
     echo -e "${colors[cyan]}- Open Redirect: $output_dir/open_redirect_vul.txt${colors[reset]}"
     echo -e "${colors[cyan]}- LFI: $output_dir/lfi_vul.txt${colors[reset]}"
-    echo -e "${colors[cyan]}- SQLi: $output_dir/sqlmap_results"${colors[reset]}"
+    echo -e "${colors[cyan]}- SQLi: $output_dir/bsqli_vulnerable_urls.txt${colors[reset]}"
     echo -e "${colors[cyan]}- Multiple vulnerabilities: $output_dir/multiple_vulnerabilities.txt${colors[reset]}"
 }
 
@@ -138,8 +175,9 @@ prepare_output_files  # Clean and overwrite files each scan
 run_whatweb_scan      # Run WhatWeb scan first
 find_subdomains
 check_subdomain_takeover
-find_sqli_vulnerabilities  # SQLMap scan for all URLs in final.txt
-run_nuclei_scan
-run_vulnerability_tests
+find_sqli_vulnerabilities  # SQLMap scan for detection only (no attack)
+run_lfi_scan           # LFI scan using ffuf
+run_open_redirect_scan # Open Redirect scan using OpenRedireX
+run_xss_scan           # XSS detection with DalFox and custom payloads
 cleanup_files
 output_summary
