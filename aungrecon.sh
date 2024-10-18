@@ -159,6 +159,22 @@ run_xss_scan() {
     fi
 }
 
+# Multi-vulnerability detection using Nuclei for all alive subdomains
+run_nuclei_scan() {
+    echo -e "${colors[yellow]}[+] Running Nuclei for multi-vulnerability scanning on all alive subdomains...${colors[reset]}"
+    
+    # Check if alivesub.txt exists and contains subdomains
+    if [[ -f "$output_dir/alivesub.txt" && -s "$output_dir/alivesub.txt" ]]; then
+        # Running Nuclei for multiple vulnerabilities on all alive subdomains
+        nuclei -l "$output_dir/alivesub.txt" -t cves,default-logins,exposures,vulnerabilities -severity low,medium,high,critical -o "$output_dir/multiple_vulnerabilities.txt"
+        
+        echo -e "${colors[green]}[+] Nuclei scan completed. Results saved in multiple_vulnerabilities.txt.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] No alive subdomains found in alivesub.txt. Skipping Nuclei scan.${colors[reset]}"
+    fi
+}
+
+
 # Cleanup intermediate files
 cleanup_files() {
     echo -e "${colors[yellow]}[+] Cleaning up intermediate files...${colors[reset]}"
@@ -171,7 +187,7 @@ output_summary() {
     echo -e "${colors[cyan]}- XSS: $output_dir/xss_vul.txt${colors[reset]}"
     echo -e "${colors[cyan]}- Open Redirect: $output_dir/open_redirect_vul.txt${colors[reset]}"
     echo -e "${colors[cyan]}- LFI: $output_dir/lfi_vul.txt${colors[reset]}"
-    echo -e "${colors[cyan]}- SQLi: $output_dir/bsqli_vulnerable_urls.txt${colors[reset]}"
+    echo -e "${colors[cyan]}- SQLi: $output_dir/sqlmap_results${colors[reset]}"
     echo -e "${colors[cyan]}- Multiple vulnerabilities: $output_dir/multiple_vulnerabilities.txt${colors[reset]}"
 }
 
