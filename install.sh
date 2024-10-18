@@ -26,7 +26,6 @@ cd aungrecon || echo "Failed to change to aungrecon directory"
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 declare -A REPOS=(
   ["paramspider"]="https://github.com/devanshbatham/paramspider"
-  ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
   ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
@@ -88,13 +87,6 @@ for tool in "${GO_TOOLS[@]}"; do
     sudo cp "$HOME/go/bin/nuclei" /usr/local/bin/ || echo "Failed to move nuclei to /usr/local/bin"
   fi
 done
-
-# Set up openredirex
-printf "${CYAN}Setting up openredirex\n${NORMAL}"
-cd $HOME/aungrecon/openredirex || echo "Failed to change to openredirex directory"
-chmod +x setup.sh
-sudo bash setup.sh || echo "Failed to set up openredirex"
-cd .. || echo "Failed to return to aungrecon directory"
 
 # Set up paramspider
 printf "${CYAN}Setting up paramspider\n${NORMAL}"
