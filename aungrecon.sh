@@ -138,7 +138,7 @@ run_xss_scan() {
             echo -e "${colors[blue]}[+] Testing $url for XSS with DalFox and custom payloads...${colors[reset]}"
             
             # DalFox scan for XSS using custom payloads
-            dalfox file "$output_dir/final.txt" --skip-mining --silence --p "$payload_file" --output "$output_dir/xss_vul.txt"
+            dalfox file "$output_dir/final.txt" --silence --p "$payload_file" --output "$output_dir/xss_vul.txt"
             
         done < "$output_dir/final.txt"
         
