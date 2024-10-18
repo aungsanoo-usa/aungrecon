@@ -28,7 +28,6 @@ Before you can use **AungRecon**, ensure you have the following tools installed 
 - `sqlmap`
 - `urldedupe`
 - `anew`
-- `openredirex`
 - `ffuf`
 - `gau`
 - `gf`
