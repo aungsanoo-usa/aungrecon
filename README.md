@@ -39,7 +39,7 @@ These tools are required for full functionality. You can install them manually o
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/aungrecon.git
+   git clone https://github.com/aungsanoo-usa/aungrecon.git
    cd aungrecon
    ```
    ```bash
