@@ -123,7 +123,7 @@ output_summary() {
     echo -e "${colors[cyan]}- XSS: $output_dir/xss_vul.txt${colors[reset]}"
     echo -e "${colors[cyan]}- Open Redirect: $output_dir/open_redirect_vul.txt${colors[reset]}"
     echo -e "${colors[cyan]}- LFI: $output_dir/lfi_vul.txt${colors[reset]}"
-    echo -e "${colors[cyan]}- SQLi: $output_dir/bsqli_vulnerable_urls.txt${colors[reset]}"
+    echo -e "${colors[cyan]}- SQLi: $output_dir/sqlmap_results"${colors[reset]}"
     echo -e "${colors[cyan]}- Multiple vulnerabilities: $output_dir/multiple_vulnerabilities.txt${colors[reset]}"
 }
 
