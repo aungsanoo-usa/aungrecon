@@ -44,7 +44,7 @@ check_tools() {
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
     mkdir -p "$output_dir"
-    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt bsqli_vulnerable_urls.txt multiple_vulnerabilities.txt final.txt whatweb.txt; do
+    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt multiple_vulnerabilities.txt final.txt whatweb.txt; do
         > "$output_dir/$file"  # Truncate (empty) the files
     done
 }
@@ -138,7 +138,7 @@ run_xss_scan() {
             echo -e "${colors[blue]}[+] Testing $url for XSS with DalFox and custom payloads...${colors[reset]}"
             
             # DalFox scan for XSS using custom payloads
-            dalfox file "$output_dir/final.txt" --silence --p "$payload_file" --output "$output_dir/xss_vul.txt"
+            dalfox file "$output_dir/final.txt" --silence --custom-payload "$payload_file" --output "$output_dir/xss_vul.txt"
             
         done < "$output_dir/final.txt"
         
