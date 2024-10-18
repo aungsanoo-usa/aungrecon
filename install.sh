@@ -13,7 +13,7 @@ printf "##########################################################\n\n${NORMAL}"
 sudo apt -y update
 
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake whatweb 
+sudo apt install -y golang-go cmake whatweb sqlmap
 
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 cd $HOME/aungrecon
@@ -21,7 +21,6 @@ cd $HOME/aungrecon
 declare -A REPOS=(
   ["xss_vibes"]="https://github.com/faiyazahmad07/xss_vibes.git"
   ["paramspider"]="https://github.com/devanshbatham/paramspider"
-  ["sqli-scanner"]="https://github.com/aungsanoo-usa/sqli-scanner.git"
   ["openredirex"]="https://github.com/devanshbatham/openredirex"
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
