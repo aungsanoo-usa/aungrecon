@@ -118,11 +118,22 @@ run_lfi_scan() {
 
 # Open Redirect detection using OpenRedireX
 run_open_redirect_scan() {
-    echo -e "${colors[yellow]}[+] Testing for Open Redirect vulnerabilities using OpenRedireX...${colors[reset]}"
+    echo -e "${colors[yellow]}[+] Testing for Open Redirect vulnerabilities on all alive subdomains using ffuf...${colors[reset]}"
     
-    gau "$website_input" | gf redirect | uro | sed 's/=.*/=/' | openredirex -p "$HOME/aungrecon/or.txt" -k "FUZZ" -c 30 > "$output_dir/open_redirect_vul.txt"
-    
-    echo -e "${colors[green]}[+] Open Redirect scan completed. Results saved in open_redirect_vul.txt.${colors[reset]}"
+    # Check if alivesub.txt exists and contains subdomains
+    if [[ -f "$HOME/aungrecon/results/allurls.txt" && -s "$HOME/aungrecon/results/allurls.txt" ]]; then
+        while IFS= read -r url; do
+            echo -e "${colors[blue]}[+] Testing $url for Open Redirect vulnerabilities...${colors[reset]}"
+            
+            # Running ffuf for Open Redirect fuzzing on each alive subdomain
+            ffuf -u "$url/FUZZ" -w "$HOME/aungrecon/or.txt" -mc 200 -c -v -mr "http" >> "$output_dir/open_redirect_vul.txt"
+        
+        done < "$output_dir/alivesub.txt"
+        
+        echo -e "${colors[green]}[+] Open Redirect scan completed for all subdomains. Results saved in open_redirect_vul.txt.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] No alive subdomains found in alivesub.txt. Skipping Open Redirect scan.${colors[reset]}"
+    fi
 }
 
 # XSS detection with DalFox using custom payloads
