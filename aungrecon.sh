@@ -12,7 +12,7 @@ declare -A colors=(
 )
 
 output_dir="$HOME/aungrecon/output"
-tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox")
+tools=("subfinder" "paramspider" "whatweb" "sqlmap" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox")
 
 # Print logo
 echo -e "${colors[yellow]}##########################################################"
@@ -72,12 +72,30 @@ check_subdomain_takeover() {
 # SQLi detection using SQLMap for detection only (no attack)
 find_sqli_vulnerabilities() {
     echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities (detection only, no attack)...${colors[reset]}"
+
+    # Clean ParamSpider results folder before each scan
+    paramspider_results_dir="$HOME/aungrecon/results"
+    echo -e "${colors[blue]}[+] Clearing previous ParamSpider results in $paramspider_results_dir...${colors[reset]}"
+    rm -rf "$paramspider_results_dir"
+    mkdir -p "$paramspider_results_dir"
+
+    # Run ParamSpider to gather potential parameters
     paramspider -l "$output_dir/alivesub.txt"
-    cd results
+
+    # Move to results directory
+    cd "$paramspider_results_dir" || exit
+
+    # Combine results and extract parameters into final.txt
     cat *.txt > allurls.txt
     cat allurls.txt | sed 's/=.*/=/' > "$output_dir/final.txt"
+
+    # Clear SQLMap output directory before each scan
+    sqlmap_output_dir="$output_dir/sqlmap_results"
+    echo -e "${colors[blue]}[+] Clearing previous SQLMap results in $sqlmap_output_dir...${colors[reset]}"
+    rm -rf "$sqlmap_output_dir"
+    mkdir -p "$sqlmap_output_dir"
     
-    # Check if final.txt exists and has content (parameterized URLs)
+    # Check if final.txt exists and has content
     if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
         echo -e "${colors[blue]}[+] Parameters found, proceeding with SQLMap detection scan.${colors[reset]}"
         
@@ -85,9 +103,15 @@ find_sqli_vulnerabilities() {
         while IFS= read -r url; do
             echo -e "${colors[blue]}[+] Testing $url with SQLMap (detection only)...${colors[reset]}"
             
-            # SQLMap command for detection only (no attack)
-            sqlmap -u "$url" --batch --smart --level=1 --risk=1 --technique=BEU --output-dir="$output_dir/sqlmap_results"
-            
+            # SQLMap command for detection only (no attack) with increased aggressiveness and error-based detection
+            sqlmap_output=$(sqlmap -u "$url" --batch --smart --level=3 --risk=3 --random-agent --technique=BEUT --output-dir="$sqlmap_output_dir" -v 3 | tee /dev/tty)
+
+            # Check for SQLMap vulnerability indicators in the output
+            if echo "$sqlmap_output" | grep -q "the back-end DBMS"; then
+                echo -e "${colors[red]}[+] SQLMap found a vulnerability at $url. Skipping further scans for this site.${colors[reset]}"
+                return 0  # Exit the function if a vulnerability is found
+            fi
+
         done < "$output_dir/final.txt"
         
         echo -e "${colors[green]}[+] SQLMap detection scan completed. Results saved in the output directory.${colors[reset]}"
@@ -95,6 +119,7 @@ find_sqli_vulnerabilities() {
         echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping SQLi detection scan.${colors[reset]}"
     fi
 }
+
 
 # LFI detection for all subdomains using ffuf
 run_lfi_scan() {
