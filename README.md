@@ -64,7 +64,7 @@ These tools are required for full functionality. You can install them manually o
 - **xss_vul.txt**:: XSS vulnerabilities.
 - **open_redirect_vul.txt**:: Open redirect vulnerabilities.
 - **lfi_vul.txt**:: LFI vulnerabilities.
-- **bsqli_vulnerable_urls.txt**:: SQLi vulnerabilities.
+- **sqlmap_results**:: SQLi vulnerabilities.
 - **whatweb.txt**:: Information from the WhatWeb scan.
 - **multiple_vulnerabilities.txt**:: Results from Nuclei scans.
   
