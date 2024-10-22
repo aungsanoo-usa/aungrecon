@@ -104,7 +104,7 @@ find_sqli_vulnerabilities() {
             echo -e "${colors[blue]}[+] Testing $url with SQLMap (detection only)...${colors[reset]}"
             
             # SQLMap command for detection only (no attack) with increased aggressiveness and error-based detection
-            sqlmap_output=$(sqlmap -u "$url" --batch --smart --level=3 --risk=3 --random-agent --technique=BEUT --output-dir="$sqlmap_output_dir" -v 3 | tee /dev/tty)
+            sqlmap_output=$(sqlmap -u "$url" --batch --smart --ignore-redirects --level=5 --risk=3 --random-agent --technique=BEUT --output-dir="$sqlmap_output_dir" -v 3 | tee /dev/tty)
 
             # Check for SQLMap vulnerability indicators in the output
             if echo "$sqlmap_output" | grep -q "the back-end DBMS"; then
