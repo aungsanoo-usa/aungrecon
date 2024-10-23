@@ -32,6 +32,7 @@ Before you can use **AungRecon**, ensure you have the following tools installed 
 - `gau`
 - `gf`
 - `nuclei`
+- `Dalfox`
 
 These tools are required for full functionality. You can install them manually or automate the process by using the provided `install.sh` script .
 
