@@ -108,6 +108,6 @@ cd $HOME/aungrecon/urldedupe || echo "Failed to change to urldedupe directory"
 cmake CMakeLists.txt || echo "Failed to run CMake for urldedupe"
 make || echo "Failed to compile urldedupe"
 sudo mv $HOME/aungrecon/urldedupe/urldedupe /usr/local/bin || echo "Failed to move urldedupe to /usr/local/bin"
-
+sudo mv $HOME/go/bin/dalfox /usr/local/bin
 # Final message
 printf "${BOLD}${YELLOW}Installation completed (with warnings, if any)!\n${NORMAL}"
