@@ -59,6 +59,7 @@ declare -a GO_TOOLS=(
   "github.com/PentestPad/subzy"
   "github.com/tomnomnom/anew"
   "github.com/projectdiscovery/nuclei/v3/cmd/nuclei"
+  "github.com/projectdiscovery/katana/cmd/katana"
 )
 
 for tool in "${GO_TOOLS[@]}"; do
@@ -85,6 +86,8 @@ for tool in "${GO_TOOLS[@]}"; do
     sudo cp "$HOME/go/bin/anew" /usr/local/bin/ || echo "Failed to move anew to /usr/local/bin"
   elif [[ "$tool_name" == "nuclei" ]]; then
     sudo cp "$HOME/go/bin/nuclei" /usr/local/bin/ || echo "Failed to move nuclei to /usr/local/bin"
+  elif [[ "$tool_name" == "katana" ]]; then
+    sudo cp "$HOME/go/bin/katana" /usr/local/bin/ || echo "Failed to move nuclei to /usr/local/bin"
   fi
 done
 
