@@ -194,7 +194,7 @@ run_nuclei_scan() {
 # Cleanup intermediate files
 cleanup_files() {
     echo -e "${colors[yellow]}[+] Cleaning up intermediate files...${colors[reset]}"
-    rm -f "$output_dir/subdomains.txt" "$output_dir/alivesub.txt" "$output_dir/allurls.txt"
+    rm -f "$output_dir/subdomains.txt" "$output_dir/allurls.txt" "$output_dir/katana_endpoints.txt"
 }
 
 # Final output message
