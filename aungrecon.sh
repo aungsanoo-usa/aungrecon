@@ -44,7 +44,7 @@ check_tools() {
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
     mkdir -p "$output_dir"
-    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt multiple_vulnerabilities.txt subdomains.txt alivesub.txt final.txt whatweb.txt katana_endpoints.txt; do
+    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt multiple_vulnerabilities.txt subdomains.txt alivesub.txt final.txt whatweb.txt katana_endpoints.txt subzy_results.txt; do
         > "$output_dir/$file"  # Truncate (empty) the files
     done
 }
