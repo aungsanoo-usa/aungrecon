@@ -25,7 +25,7 @@ Before you can use **AungRecon**, ensure you have the following tools installed 
 - `uro`
 - `httpx`
 - `subzy`
-- `sqlmap`
+- `bsqli`
 - `urldedupe`
 - `anew`
 - `ffuf`
@@ -66,7 +66,7 @@ These tools are required for full functionality. You can install them manually o
 - **xss_vul.txt**:: XSS vulnerabilities.
 - **open_redirect_vul.txt**:: Open redirect vulnerabilities.
 - **lfi_vul.txt**:: LFI vulnerabilities.
-- **sqlmap_results**:: SQLi vulnerabilities.
+- **bsqli_results**:: SQLi vulnerabilities.
 - **whatweb.txt**:: Information from the WhatWeb scan.
 - **multiple_vulnerabilities.txt**:: Results from Nuclei scans.
   
