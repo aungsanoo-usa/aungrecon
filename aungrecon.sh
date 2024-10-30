@@ -94,41 +94,57 @@ find_subdomains_and_endpoints() {
 
 # SQLi detection using SQLMap for detection only (no attack)
 find_sqli_vulnerabilities() {
-    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities (including blind SQL injection)...${colors[reset]}"
+    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities using BSQLi...${colors[reset]}"
 
-    # Clear SQLMap output directory before each scan
-    sqlmap_output_dir="$output_dir/sqlmap_results"
-    echo -e "${colors[blue]}[+] Clearing previous SQLMap results in $sqlmap_output_dir...${colors[reset]}"
-    rm -rf "$sqlmap_output_dir"
-    mkdir -p "$sqlmap_output_dir"
+    # Define the path to the BSQLi script
+    bsqli_path="$HOME/aungrecon/bsqli/scan.py"
+
+    # Check if BSQLi is properly installed
+    if [ ! -f "$bsqli_path" ]; then
+        echo -e "${colors[red]}[!] BSQLi tool not found. Please ensure it is installed.${colors[reset]}"
+        exit 1
+    fi
+
+    # Prepare the output directory for BSQLi results
+    bsqli_output_dir="$output_dir/bsqli_results"
+    echo -e "${colors[blue]}[+] Clearing previous BSQLi results in $bsqli_output_dir...${colors[reset]}"
+    rm -rf "$bsqli_output_dir"
+    mkdir -p "$bsqli_output_dir"
     
-    # Check if final.txt exists and has parameterized endpoints before running SQLMap
+    # Check if final.txt exists and has parameterized endpoints before running BSQLi
     if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
-        echo -e "${colors[blue]}[+] Parameters found in final.txt, proceeding with SQLMap detection scan.${colors[reset]}"
-        
-        # Loop through each URL in final.txt and run SQLMap on all parameters
-        while IFS= read -r url; do
-            echo -e "${colors[blue]}[+] Testing $url with SQLMap on all parameters...${colors[reset]}"
-            
-            # Run SQLMap without specifying a parameter to allow it to detect injectable parameters automatically
-            sqlmap_output=$(sqlmap -u "$url" --batch --ignore-redirects \
-            --level=5 --risk=3 --timeout=20 --retries=2 \
-            --random-agent --technique=BT --flush-session --output-dir="$sqlmap_output_dir" -v 3 | tee /dev/tty)
+        # Define paths to URL and payload files
+        url_file="$output_dir/bsqli_urls.txt"
+        payload_file="$HOME/aungrecon/xor.txt"
 
-            # Check for SQLMap vulnerability indicators in the output
-            if echo "$sqlmap_output" | grep -q "might be injectable"; then
-                echo -e "${colors[red]}[+] SQLMap found a possible SQL injection at $url. Skipping further scans for this site.${colors[reset]}"
-                return 0  # Exit the function if a vulnerability is found
-            fi
+        # Copy final.txt to bsqli_urls.txt
+        cp "$output_dir/final.txt" "$url_file"
 
-        done < "$output_dir/final.txt"
-        
-        echo -e "${colors[green]}[+] SQLMap detection scan completed. Results saved in the output directory.${colors[reset]}"
+        # Check if payload file exists
+        if [[ ! -f "$payload_file" ]]; then
+            echo -e "${colors[red]}[!] Payload file not found at $payload_file. Please ensure it exists.${colors[reset]}"
+            exit 1
+        fi
+
+        echo -e "${colors[blue]}[+] Running BSQLi on URLs from $url_file using payloads from $payload_file...${colors[reset]}"
+
+        # Run BSQLi for the current set of URLs and payloads, preserving color in output
+        script -q -c "python3 \"$bsqli_path\" -u \"$url_file\" -p \"$payload_file\" -t 5"
+
+        # Locate and move report.html if it exists
+         bsqli_html_file="$HOME/aungrecon/bsqli/output/*.html"
+        if ls $bsqli_html_file 1> /dev/null 2>&1; then
+            mv $bsqli_html_file "$bsqli_output_dir/report.html"
+            echo -e "${colors[green]}[+] HTML report file moved to $bsqli_output_dir as report.html.${colors[reset]}"
+        else
+            echo -e "${colors[red]}[!] No HTML report file found in BSQLi output folder.${colors[reset]}"
+        fi
+
+        echo -e "${colors[green]}[+] BSQLi detection scan completed. Results saved in the bsqli_results directory.${colors[reset]}"
     else
-        echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping SQLi detection scan.${colors[reset]}"
+        echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping BSQLi detection scan.${colors[reset]}"
     fi
 }
-
 # LFI detection for all subdomains using ffuf
 run_lfi_scan() {
     echo -e "${colors[yellow]}[+] Testing for LFI vulnerabilities on all subdomains using ffuf...${colors[reset]}"
