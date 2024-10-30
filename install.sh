@@ -17,6 +17,30 @@ sudo apt -y update
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
 sudo apt install -y golang-go cmake whatweb ffuf sqlmap || echo "Error installing essential packages"
 
+# Install Selenium and ChromeDriver dependencies
+printf "${CYAN}Installing Selenium and ChromeDriver dependencies\n${NORMAL}"
+sudo apt install -y python3-pip unzip wget || echo "Error installing Python and other dependencies"
+
+# Install Selenium for Python
+pip3 install selenium --break-system-packages || echo "Failed to install Selenium"
+
+# Install Google Chrome
+printf "${CYAN}Installing Google Chrome\n${NORMAL}"
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i google-chrome-stable_current_amd64.deb || echo "Failed to install Google Chrome"
+sudo apt-get install -f -y  # Fix any dependencies
+
+# Download and install the specified ChromeDriver version
+printf "${CYAN}Installing ChromeDriver version 128.0.6613.119\n${NORMAL}"
+wget https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.119/linux64/chromedriver-linux64.zip -O chromedriver-linux64.zip
+if [[ $? -eq 0 ]]; then
+  unzip chromedriver-linux64.zip
+  sudo mv chromedriver-linux64/chromedriver /usr/local/bin/ || echo "Failed to move ChromeDriver to /usr/local/bin"
+  rm -rf chromedriver-linux64.zip chromedriver-linux64
+else
+  echo "Failed to download ChromeDriver. Please check the provided URL or your network connection."
+fi
+
 # Create AungRecon directory if it doesn't exist
 cd $HOME || echo "Failed to change to home directory"
 mkdir -p aungrecon
@@ -29,6 +53,7 @@ declare -A REPOS=(
   ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
   ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
+  ["bsqli"]="https://github.com/aungsanoo-usa/bsqli.git"
 )
 
 for repo in "${!REPOS[@]}"; do
@@ -67,28 +92,7 @@ for tool in "${GO_TOOLS[@]}"; do
   printf "${CYAN}Installing $tool_name\n${NORMAL}"
   go install "$tool@latest" || echo "Failed to install Go tool: $tool_name"
   
-  # Correct binary names for each tool
-  if [[ "$tool_name" == "dalfox" ]]; then
-    sudo cp "$HOME/go/bin/dalfox" /usr/local/bin/ || echo "Failed to move dalfox to /usr/local/bin"
-  elif [[ "$tool_name" == "subfinder" ]]; then
-    sudo cp "$HOME/go/bin/subfinder" /usr/local/bin/ || echo "Failed to move subfinder to /usr/local/bin"
-  elif [[ "$tool_name" == "httpx" ]]; then
-    sudo cp "$HOME/go/bin/httpx" /usr/local/bin/ || echo "Failed to move httpx to /usr/local/bin"
-  elif [[ "$tool_name" == "gau" ]]; then
-    sudo cp "$HOME/go/bin/gau" /usr/local/bin/ || echo "Failed to move gau to /usr/local/bin"
-  elif [[ "$tool_name" == "gf" ]]; then
-    sudo cp "$HOME/go/bin/gf" /usr/local/bin/ || echo "Failed to move gf to /usr/local/bin"
-  elif [[ "$tool_name" == "qsreplace" ]]; then
-    sudo cp "$HOME/go/bin/qsreplace" /usr/local/bin/ || echo "Failed to move qsreplace to /usr/local/bin"
-  elif [[ "$tool_name" == "subzy" ]]; then
-    sudo cp "$HOME/go/bin/subzy" /usr/local/bin/ || echo "Failed to move subzy to /usr/local/bin"
-  elif [[ "$tool_name" == "anew" ]]; then
-    sudo cp "$HOME/go/bin/anew" /usr/local/bin/ || echo "Failed to move anew to /usr/local/bin"
-  elif [[ "$tool_name" == "nuclei" ]]; then
-    sudo cp "$HOME/go/bin/nuclei" /usr/local/bin/ || echo "Failed to move nuclei to /usr/local/bin"
-  elif [[ "$tool_name" == "katana" ]]; then
-    sudo cp "$HOME/go/bin/katana" /usr/local/bin/ || echo "Failed to move nuclei to /usr/local/bin"
-  fi
+  sudo cp "$HOME/go/bin/$tool_name" /usr/local/bin/ || echo "Failed to move $tool_name to /usr/local/bin"
 done
 
 # Set up paramspider
