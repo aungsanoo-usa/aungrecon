@@ -134,7 +134,7 @@ find_sqli_vulnerabilities() {
         # Locate and move report.html if it exists
          bsqli_html_file="$HOME/aungrecon/bsqli/output/*.html"
         if ls $bsqli_html_file 1> /dev/null 2>&1; then
-            mv $bsqli_html_file "$bsqli_output_dir/report.html"
+            mv $bsqli_html_file "$bsqli_output_dir/"
             echo -e "${colors[green]}[+] HTML report file moved to $bsqli_output_dir as report.html.${colors[reset]}"
         else
             echo -e "${colors[red]}[!] No HTML report file found in BSQLi output folder.${colors[reset]}"
