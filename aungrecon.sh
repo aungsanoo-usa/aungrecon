@@ -94,7 +94,7 @@ find_subdomains_and_endpoints() {
 
 # SQLi detection using SQLMap for detection only (no attack)
 find_sqli_vulnerabilities() {
-    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities (detection only, no attack)...${colors[reset]}"
+    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities (including blind SQL injection)...${colors[reset]}"
 
     # Clear SQLMap output directory before each scan
     sqlmap_output_dir="$output_dir/sqlmap_results"
@@ -106,15 +106,18 @@ find_sqli_vulnerabilities() {
     if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
         echo -e "${colors[blue]}[+] Parameters found in final.txt, proceeding with SQLMap detection scan.${colors[reset]}"
         
-        # Loop through each URL in final.txt and run SQLMap for detection only
+        # Loop through each URL in final.txt and run SQLMap on all parameters
         while IFS= read -r url; do
-            echo -e "${colors[blue]}[+] Testing $url with SQLMap (detection only)...${colors[reset]}"
+            echo -e "${colors[blue]}[+] Testing $url with SQLMap on all parameters...${colors[reset]}"
             
-            sqlmap_output=$(sqlmap -u "$url" --batch --smart --ignore-redirects --level=5 --risk=3 --random-agent --technique=BEUT --output-dir="$sqlmap_output_dir" -v 3 | tee /dev/tty)
+            # Run SQLMap without specifying a parameter to allow it to detect injectable parameters automatically
+            sqlmap_output=$(sqlmap -u "$url" --batch --ignore-redirects \
+            --level=5 --risk=3 --timeout=20 --retries=2 \
+            --random-agent --technique=BT --flush-session --output-dir="$sqlmap_output_dir" -v 3 | tee /dev/tty)
 
             # Check for SQLMap vulnerability indicators in the output
-            if echo "$sqlmap_output" | grep -q "the back-end DBMS"; then
-                echo -e "${colors[red]}[+] SQLMap found a vulnerability at $url. Skipping further scans for this site.${colors[reset]}"
+            if echo "$sqlmap_output" | grep -q "might be injectable"; then
+                echo -e "${colors[red]}[+] SQLMap found a possible SQL injection at $url. Skipping further scans for this site.${colors[reset]}"
                 return 0  # Exit the function if a vulnerability is found
             fi
 
