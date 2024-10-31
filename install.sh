@@ -54,6 +54,7 @@ declare -A REPOS=(
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
   ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
   ["bsqli"]="https://github.com/aungsanoo-usa/bsqli.git"
+  ["xss_scanner"]="https://github.com/aungsanoo-usa/xss_scanner.git"
 )
 
 for repo in "${!REPOS[@]}"; do
