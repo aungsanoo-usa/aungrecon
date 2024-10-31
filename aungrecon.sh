@@ -129,22 +129,14 @@ find_sqli_vulnerabilities() {
         echo -e "${colors[blue]}[+] Running BSQLi on URLs from $url_file using payloads from $payload_file...${colors[reset]}"
 
         # Run BSQLi for the current set of URLs and payloads, preserving color in output
-        script -q -c "python3 \"$bsqli_path\" -u \"$url_file\" -p \"$payload_file\" -t 5"
+        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5
 
-        # Locate and move report.html if it exists
-         bsqli_html_file="$HOME/aungrecon/bsqli/output/*.html"
-        if ls $bsqli_html_file 1> /dev/null 2>&1; then
-            mv $bsqli_html_file "$bsqli_output_dir/"
-            echo -e "${colors[green]}[+] HTML report file moved to $bsqli_output_dir as report.html.${colors[reset]}"
-        else
-            echo -e "${colors[red]}[!] No HTML report file found in BSQLi output folder.${colors[reset]}"
-        fi
-
-        echo -e "${colors[green]}[+] BSQLi detection scan completed. Results saved in the bsqli_results directory.${colors[reset]}"
+        echo -e "${colors[green]}[+] BSQLi detection scan completed.${colors[reset]}"
     else
         echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping BSQLi detection scan.${colors[reset]}"
     fi
 }
+
 # LFI detection for all subdomains using ffuf
 run_lfi_scan() {
     echo -e "${colors[yellow]}[+] Testing for LFI vulnerabilities on all subdomains using ffuf...${colors[reset]}"
