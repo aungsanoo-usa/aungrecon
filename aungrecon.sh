@@ -12,7 +12,7 @@ declare -A colors=(
 )
 
 output_dir="$HOME/aungrecon/output"
-tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana")
+tools=("subfinder" "paramspider" "whatweb" "sqlmap" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana")
 
 # Print logo
 echo -e "${colors[yellow]}##########################################################"
@@ -106,7 +106,7 @@ find_sqli_vulnerabilities() {
     fi
 
     # Prepare the output directory for BSQLi results
-    bsqli_output_dir="$output_dir/bsqli_results"
+    bsqli_output_dir="$HOME/aungrecon/output/bsqli_output"
     echo -e "${colors[blue]}[+] Clearing previous BSQLi results in $bsqli_output_dir...${colors[reset]}"
     rm -rf "$bsqli_output_dir"
     mkdir -p "$bsqli_output_dir"
@@ -131,11 +131,49 @@ find_sqli_vulnerabilities() {
         # Run BSQLi for the current set of URLs and payloads, preserving color in output
         python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 10
 
-        echo -e "${colors[green]}[+] BSQLi detection scan completed.${colors[reset]}"
-    else
-        echo -e "${colors[red]}[!] No parameterized endpoints found in final.txt. Skipping BSQLi detection scan.${colors[reset]}"
+        # Move all HTML report files from BSQLi output folder to bsqli_output_dir
+        bsqli_html_dir="$HOME/aungrecon/bsqli/output"
+            mv "$bsqli_html_dir"/bsqli_report.html "$bsqli_output_dir/"
+            echo -e "${colors[green]}[+] HTML report files moved to $bsqli_output_dir.${colors[reset]}"
     fi
 }
+
+run_xss_scan() {
+    echo -e "${colors[yellow]}[+] Finding XSS vulnerabilities using custom XSS Scanner...${colors[reset]}"
+    
+    # Define the path to the XSS scanner script
+    xss_scanner_path="$HOME/aungrecon/xss_scanner/xss_scanner.py"
+    
+    # Define paths for URL list, payloads, and output file
+    url_file="$output_dir/final.txt"
+    payload_file="$HOME/aungrecon/xss.txt"
+    output_file="$output_dir/xss_vul.txt"
+    
+    # Check if the XSS scanner tool is installed
+    if [ ! -f "$xss_scanner_path" ]; then
+        echo -e "${colors[red]}[!] XSS Scanner tool not found at $xss_scanner_path. Please ensure it is installed.${colors[reset]}"
+        exit 1
+    fi
+
+    # Check if payload file exists
+    if [[ ! -f "$payload_file" ]]; then
+        echo -e "${colors[red]}[!] Payload file not found at $payload_file. Please ensure it exists.${colors[reset]}"
+        exit 1
+    fi
+
+    # Check if URL file exists and has content
+    if [[ -f "$url_file" && -s "$url_file" ]]; then
+        echo -e "${colors[blue]}[+] Running XSS Scanner on URLs from $url_file using payloads from $payload_file...${colors[reset]}"
+
+        # Run the XSS scanner with specified input and output files
+        python3 "$xss_scanner_path" -l "$url_file" -p "$payload_file" -o "$output_file"
+
+        echo -e "${colors[green]}[+] XSS Scanner completed. Results saved in xss_vul.txt.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] URL file $url_file not found or empty. Skipping XSS scan.${colors[reset]}"
+    fi
+}
+
 
 # LFI detection for all subdomains using ffuf
 run_lfi_scan() {
@@ -168,24 +206,6 @@ run_open_redirect_scan() {
         echo -e "${colors[green]}[+] Open Redirect scan completed for all subdomains. Results saved in open_redirect_vul.txt.${colors[reset]}"
     else
         echo -e "${colors[red]}[!] No alive subdomains found in alivesub.txt. Skipping Open Redirect scan.${colors[reset]}"
-    fi
-}
-
-# XSS detection with DalFox using custom payloads
-run_xss_scan() {
-    echo -e "${colors[yellow]}[+] Finding XSS vulnerabilities using DalFox with custom payloads...${colors[reset]}"
-    
-    payload_file="$HOME/aungrecon/xss.txt"
-    
-    if [[ -f "$payload_file" ]]; then
-        while IFS= read -r url; do
-            echo -e "${colors[blue]}[+] Testing $url for XSS with DalFox and custom payloads...${colors[reset]}"
-            dalfox file "$output_dir/final.txt" --silence --custom-payload "$payload_file" --output "$output_dir/xss_vul.txt"
-        done < "$output_dir/final.txt"
-        
-        echo -e "${colors[green]}[+] DalFox XSS scan completed with custom payloads. Results saved in xss_vul.txt.${colors[reset]}"
-    else
-        echo -e "${colors[red]}[!] Custom payload file not found. Skipping XSS scan.${colors[reset]}"
     fi
 }
 
@@ -228,10 +248,10 @@ website_url="https://$website_url"
 prepare_output_files  # Clean and overwrite files each scan
 run_whatweb_scan      # Run WhatWeb scan first
 find_subdomains_and_endpoints  # Discover subdomains, run Katana and ParamSpider
-find_sqli_vulnerabilities  # SQLMap scan for detection only (no attack)
+find_sqli_vulnerabilities #used my own tool bsqli
+run_xss_scan           # XSS detection with my own tool xss scanner and custom payloads
 run_lfi_scan           # LFI scan using ffuf
 run_open_redirect_scan # Open Redirect scan using OpenRedireX
-run_xss_scan           # XSS detection with DalFox and custom payloads
 run_nuclei_scan
 cleanup_files
 output_summary
