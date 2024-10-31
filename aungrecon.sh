@@ -129,7 +129,7 @@ find_sqli_vulnerabilities() {
         echo -e "${colors[blue]}[+] Running BSQLi on URLs from $url_file using payloads from $payload_file...${colors[reset]}"
 
         # Run BSQLi for the current set of URLs and payloads, preserving color in output
-        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5
+        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 10
 
         echo -e "${colors[green]}[+] BSQLi detection scan completed.${colors[reset]}"
     else
