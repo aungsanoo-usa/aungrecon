@@ -34,6 +34,8 @@ Before you can use **AungRecon**, ensure you have the following tools installed 
 - `nuclei`
 - `Dalfox`
 - `katana`
+- `nikto`
+- `SecretFinder`
 
 These tools are required for full functionality. You can install them manually or automate the process by using the provided `install.sh` script .
 
