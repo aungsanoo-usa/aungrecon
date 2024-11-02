@@ -15,7 +15,7 @@ sudo apt -y update
 
 # Install required programming languages and essential packages
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake whatweb ffuf sqlmap || echo "Error installing essential packages"
+sudo apt install -y golang-go cmake whatweb ffuf sqlmap nikto || echo "Error installing essential packages"
 
 # Install Selenium and ChromeDriver dependencies
 printf "${CYAN}Installing Selenium and ChromeDriver dependencies\n${NORMAL}"
@@ -55,6 +55,7 @@ declare -A REPOS=(
   ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
   ["bsqli"]="https://github.com/aungsanoo-usa/bsqli.git"
   ["xss_scanner"]="https://github.com/aungsanoo-usa/xss_scanner.git"
+  ["SecretFinder"]="https://github.com/m4ll0k/SecretFinder.git"
 )
 
 for repo in "${!REPOS[@]}"; do
