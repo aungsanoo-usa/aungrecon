@@ -15,7 +15,7 @@ output_dir="$HOME/aungrecon/output"
 paramspider_results_dir="$output_dir/paramspider_results"
 bsqli_output_dir="$output_dir/bsqli_results"
 
-tools=("subfinder" "paramspider" "whatweb" "sqlmap" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3")
+tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3")
 
 # Print logo
 echo -e "${colors[yellow]}##########################################################"
