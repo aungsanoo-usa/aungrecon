@@ -12,7 +12,7 @@ declare -A colors=(
 )
 
 output_dir="$HOME/aungrecon/output"
-paramspider_results_dir="$output_dir/paramspider_results"
+paramspider_results_dir="$HOME/aungrecon/results"
 bsqli_output_dir="$output_dir/bsqli_results"
 
 tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3")
@@ -46,7 +46,7 @@ check_tools() {
 # Prepare output files before each scan
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
-    rm -rf "$output_dir" "$HOME/aungrecon/results"
+    rm -rf "$output_dir" "$paramspider_results_dir"
     mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir"
     for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt multiple_vulnerabilities.txt subdomains.txt alivesub.txt final.txt whatweb.txt katana_endpoints.txt subzy_results.txt secret.txt; do
         > "$output_dir/$file"
