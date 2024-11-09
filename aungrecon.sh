@@ -14,6 +14,9 @@ declare -A colors=(
 output_dir="$HOME/aungrecon/output"
 paramspider_results_dir="$HOME/aungrecon/results"
 bsqli_output_dir="$output_dir/bsqli_results"
+github_repo="https://github.com/aungsanoo-usa/aungrecon.git"
+script_dir="$HOME/aungrecon"  # Path where the repository is cloned
+temp_file="/tmp/aungrecon_state.txt"  # File to store current script state
 
 tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3")
 
@@ -41,6 +44,51 @@ check_tools() {
             exit 1
         fi
     done
+}
+
+update_and_restart() {
+    echo -e "${colors[yellow]}[+] Checking for updates...${colors[reset]}"
+    
+    # Check if git is installed
+    if ! command -v git &>/dev/null; then
+        echo -e "${colors[red]}[!] Git is not installed. Please install git to use the update function.${colors[reset]}"
+        exit 1
+    fi
+
+    # Save current state before updating
+    echo "$current_stage" > "$temp_file"
+    
+    # Navigate to the script directory
+    cd "$script_dir" || exit
+    
+    # Stash any uncommitted changes
+    if ! git diff --quiet; then
+        echo -e "${colors[red]}[!] Uncommitted changes detected. Stashing changes temporarily to allow updates.${colors[reset]}"
+        git stash
+    fi
+
+    # Fetch and pull updates
+    git fetch origin
+    if git diff --quiet HEAD origin/main; then
+        echo -e "${colors[green]}[+] Script is up-to-date.${colors[reset]}"
+    else
+        echo -e "${colors[blue]}[+] Updates found. Pulling the latest changes...${colors[reset]}"
+        git pull origin main
+        
+        # Give executable permission to the updated script
+        chmod +x "$script_dir/aungrecon.sh"
+        
+        echo -e "${colors[green]}[+] Script updated and made executable successfully! Restarting script to continue...${colors[reset]}"
+        
+        # Reapply stashed changes if any
+        if git stash list | grep -q "stash@{0}"; then
+            echo -e "${colors[yellow]}[+] Reapplying stashed changes...${colors[reset]}"
+            git stash pop
+        fi
+
+        # Restart script with saved state
+        exec "$0"
+    fi
 }
 
 # Prepare output files before each scan
@@ -168,6 +216,7 @@ website_url="${website_input#http://}"
 website_url="${website_input#https://}"
 website_url="https://$website_url"
 
+update_and_restart
 prepare_output_files
 run_whatweb_scan
 find_subdomains_and_endpoints
