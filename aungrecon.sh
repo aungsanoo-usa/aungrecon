@@ -49,25 +49,19 @@ check_tools() {
 update_and_restart() {
     echo -e "${colors[yellow]}[+] Checking for updates...${colors[reset]}"
     
-    # Check if git is installed
     if ! command -v git &>/dev/null; then
         echo -e "${colors[red]}[!] Git is not installed. Please install git to use the update function.${colors[reset]}"
         exit 1
     fi
 
-    # Save current state before updating
     echo "$current_stage" > "$temp_file"
-    
-    # Navigate to the script directory
     cd "$script_dir" || exit
-    
-    # Stash any uncommitted changes
+
     if ! git diff --quiet; then
         echo -e "${colors[red]}[!] Uncommitted changes detected. Stashing changes temporarily to allow updates.${colors[reset]}"
         git stash
     fi
 
-    # Fetch and pull updates
     git fetch origin
     if git diff --quiet HEAD origin/main; then
         echo -e "${colors[green]}[+] Script is up-to-date.${colors[reset]}"
@@ -75,22 +69,20 @@ update_and_restart() {
         echo -e "${colors[blue]}[+] Updates found. Pulling the latest changes...${colors[reset]}"
         git pull origin main
         
-        # Give executable permission to the updated script
-        chmod +x "$script_dir/aungrecon.sh"
-        
-        echo -e "${colors[green]}[+] Script updated and made executable successfully! Restarting script to continue...${colors[reset]}"
-        
-        # Reapply stashed changes if any
+        # Run chmod only once, if permissions are incorrect
+        if [[ ! -x "$script_dir/aungrecon.sh" ]]; then
+            chmod +x "$script_dir/aungrecon.sh"
+            echo -e "${colors[green]}[+] Script permissions updated!${colors[reset]}"
+        fi
+
         if git stash list | grep -q "stash@{0}"; then
             echo -e "${colors[yellow]}[+] Reapplying stashed changes...${colors[reset]}"
             git stash pop
         fi
 
-        # Restart script with saved state
         exec "$0"
     fi
 }
-
 # Prepare output files before each scan
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
@@ -210,13 +202,13 @@ output_summary() {
     done
 }
 
+update_and_restart
 check_tools
 read -p "[+] Enter the website domain: " website_input
 website_url="${website_input#http://}"
 website_url="${website_input#https://}"
 website_url="https://$website_url"
 
-update_and_restart
 prepare_output_files
 run_whatweb_scan
 find_subdomains_and_endpoints
