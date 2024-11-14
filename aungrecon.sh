@@ -138,10 +138,11 @@ find_sqli_vulnerabilities() {
     fi
     if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
         url_file="$output_dir/bsqli_urls.txt"
+        proxy_file="$HOME/aungrecon/bsqli/proxy.txt"
         payload_file="$HOME/aungrecon/xor.txt"
         cp "$output_dir/final.txt" "$url_file"
         [ ! -f "$payload_file" ] && echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}" && exit 1
-        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 10
+        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5 --proxy-file "$proxy_file"
         mv "$HOME/aungrecon/bsqli/output/"*.html "$bsqli_output_dir/" 2>/dev/null
         echo -e "${colors[green]}[+] HTML report moved to $bsqli_output_dir.${colors[reset]}"
     fi
