@@ -101,6 +101,7 @@ done
 printf "${CYAN}Setting up paramspider\n${NORMAL}"
 cd $HOME/aungrecon/paramspider || echo "Failed to change to paramspider directory"
 pip3 install . --break-system-packages || echo "Failed to install paramspider"
+sudo mv ~/.local/bin/paramspider /usr/local/bin || echo "Failed to move paramspider to /usr/local/bin"
 cd .. || echo "Failed to return to aungrecon directory"
 
 # Install Python tools
