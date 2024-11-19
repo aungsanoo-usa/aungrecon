@@ -93,6 +93,16 @@ prepare_output_files() {
     done
 }
 
+# Domain activity check
+check_domain_activity() {
+    echo -e "${colors[yellow]}[+] Checking if the input domain is active...${colors[reset]}"
+    if httpx -silent -status-code -no-color -title "$website_url" | grep -q '200'; then
+        echo -e "${colors[green]}[+] The domain $website_url is active.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] The domain $website_url appears to be inactive. Please check the domain and try again.${colors[reset]}"
+        exit 1
+    fi
+}
 # WhatWeb scan
 run_whatweb_scan() {
     echo -e "${colors[yellow]}[+] Running WhatWeb scan to gather website information...${colors[reset]}"
@@ -211,6 +221,7 @@ website_url="${website_input#https://}"
 website_url="https://$website_url"
 
 prepare_output_files
+check_domain_activity  # Ensure domain is active
 run_whatweb_scan
 find_subdomains_and_endpoints
 find_sqli_vulnerabilities
