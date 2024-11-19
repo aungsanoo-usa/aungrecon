@@ -62,18 +62,6 @@ test_connectivity() {
     exit 1
 }
 
-test_target_domain_connectivity() {
-    echo -e "Checking connectivity to the target domain: $website_url..."
-
-    # Ensure the target domain is reachable
-    if nc -zw5 "${website_url#https://}" 443 2>/dev/null; then
-        echo -e "${bgreen}[+] Target domain is reachable.${reset}"
-    else
-        echo -e "${bred}[!] Unable to reach target domain $website_url. Please check and try again.${reset}"
-        exit 1
-    fi
-}
-
 update_and_restart() {
     echo -e "${colors[yellow]}[+] Checking for updates...${colors[reset]}"
     
@@ -240,8 +228,6 @@ website_url="${website_input#https://}"
 website_url="https://$website_url"
 
 prepare_output_files
-# Check the target domain
-test_target_domain_connectivity
 run_whatweb_scan
 find_subdomains_and_endpoints
 find_sqli_vulnerabilities
