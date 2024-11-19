@@ -46,6 +46,34 @@ check_tools() {
     done
 }
 
+test_connectivity() {
+    echo -e "Checking internet connectivity..."
+
+    # Test multiple known reliable hosts
+    for host in google.com cloudflare.com; do
+        if nc -zw1 "$host" 443 2>/dev/null; then
+            echo -e "Connection to $host: ${bgreen}OK${reset}"
+            return
+        fi
+    done
+
+    # If all tests fail
+    echo -e "${bred}[!] Please check your internet connection and then try again...${reset}"
+    exit 1
+}
+
+test_target_domain_connectivity() {
+    echo -e "Checking connectivity to the target domain: $website_url..."
+
+    # Ensure the target domain is reachable
+    if nc -zw5 "${website_url#https://}" 443 2>/dev/null; then
+        echo -e "${bgreen}[+] Target domain is reachable.${reset}"
+    else
+        echo -e "${bred}[!] Unable to reach target domain $website_url. Please check and try again.${reset}"
+        exit 1
+    fi
+}
+
 update_and_restart() {
     echo -e "${colors[yellow]}[+] Checking for updates...${colors[reset]}"
     
@@ -202,6 +230,10 @@ output_summary() {
     done
 }
 
+# Check general internet connectivity
+test_connectivity
+# Check the target domain
+test_target_domain_connectivity
 update_and_restart
 check_tools
 read -p "[+] Enter the website domain: " website_input
