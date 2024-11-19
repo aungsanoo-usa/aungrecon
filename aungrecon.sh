@@ -232,8 +232,6 @@ output_summary() {
 
 # Check general internet connectivity
 test_connectivity
-# Check the target domain
-test_target_domain_connectivity
 update_and_restart
 check_tools
 read -p "[+] Enter the website domain: " website_input
@@ -242,6 +240,8 @@ website_url="${website_input#https://}"
 website_url="https://$website_url"
 
 prepare_output_files
+# Check the target domain
+test_target_domain_connectivity
 run_whatweb_scan
 find_subdomains_and_endpoints
 find_sqli_vulnerabilities
