@@ -197,9 +197,44 @@ run_nikto_scan() {
 
 run_lfi_scan() {
     echo -e "${colors[yellow]}[+] Running LFI scan...${colors[reset]}"
-    lfi_payloads="$HOME/aungrecon/lfi.txt"
-    [[ -f "$lfi_payloads" ]] && while IFS= read -r url; do gau "$url" | gf lfi | ffuf -u {} -w "$lfi_payloads" -c -mr "root:x:0:" -o "$output_dir/lfi_vul.txt"; done < "$output_dir/alivesub.txt"
+    
+    # Define paths
+    lfi_scanner_path="$HOME/aungrecon/lfi_scanner/lfi.py"
+    url_file="$output_dir/final.txt"
+    payload_file="$HOME/aungrecon/lfi.txt"
+    output_file="$output_dir/lfi_vul.txt"
+
+    # Check if the LFI scanner exists
+    if [ ! -f "$lfi_scanner_path" ]; then
+        echo -e "${colors[red]}[!] Missing LFI scanner script at $lfi_scanner_path. Skipping.${colors[reset]}"
+        return
+    fi
+
+    # Check if the payload file exists
+    if [ ! -f "$payload_file" ]; then
+        echo -e "${colors[red]}[!] Missing payload file at $payload_file. Skipping.${colors[reset]}"
+        return
+    fi
+
+    # Check if URL file exists and is not empty
+    if [ ! -s "$url_file" ]; then
+        echo -e "${colors[red]}[!] No URLs to scan in $url_file. Skipping.${colors[reset]}"
+        return
+    fi
+
+    # Run the LFI scanner
+    echo -e "${colors[blue]}[+] Scanning for LFI vulnerabilities using $lfi_scanner_path...${colors[reset]}"
+    if python3 "$lfi_scanner_path" -l "$url_file" -p "$payload_file" -o "$output_file"; then
+        if [ -s "$output_file" ]; then
+            echo -e "${colors[green]}[+] LFI scan completed. Results saved to $output_file.${colors[reset]}"
+        else
+            echo -e "${colors[yellow]}[!] LFI scan completed but no vulnerabilities were found.${colors[reset]}"
+        fi
+    else
+        echo -e "${colors[red]}[!] An error occurred while running the LFI scanner.${colors[reset]}"
+    fi
 }
+
 
 run_open_redirect_scan() {
     echo -e "${colors[yellow]}[+] Running Open Redirect scan...${colors[reset]}"
@@ -232,9 +267,9 @@ run_whatweb_scan
 find_subdomains_and_endpoints
 find_sqli_vulnerabilities
 run_xss_scan
+run_lfi_scan
 run_secretfinder_scan
 run_nikto_scan
-run_lfi_scan
 run_open_redirect_scan
 run_nuclei_scan
 output_summary
