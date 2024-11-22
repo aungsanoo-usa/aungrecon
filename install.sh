@@ -55,6 +55,7 @@ declare -A REPOS=(
   ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
   ["bsqli"]="https://github.com/aungsanoo-usa/bsqli.git"
   ["xss_scanner"]="https://github.com/aungsanoo-usa/xss_scanner.git"
+  ["lfi_scanner"]="https://github.com/aungsanoo-usa/lfi_scanner.git"
   ["SecretFinder"]="https://github.com/m4ll0k/SecretFinder.git"
 )
 
