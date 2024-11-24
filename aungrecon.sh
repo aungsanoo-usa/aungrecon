@@ -199,14 +199,14 @@ run_lfi_scan() {
     echo -e "${colors[yellow]}[+] Running LFI scan...${colors[reset]}"
     
     # Define paths
-    lfi_scanner_path="$HOME/aungrecon/lfi_scanner/lfi.py"
+    lfi_scanner_path="$HOME/aungrecon/lfi_scanner/lfi_scan.py"
     url_file="$output_dir/final.txt"
     payload_file="$HOME/aungrecon/lfi.txt"
     output_file="$output_dir/lfi_vul.txt"
 
     # Check if the LFI scanner exists
     if [ ! -f "$lfi_scanner_path" ]; then
-        echo -e "${colors[red]}[!] Missing LFI scanner script at $lfi_scanner_path. Skipping.${colors[reset]}"
+        echo -e "${colors[red]}[!] Missing LFI scanner script at $lfi_scanner_path. Run again install.sh ..Skipping.${colors[reset]}"
         return
     fi
 
