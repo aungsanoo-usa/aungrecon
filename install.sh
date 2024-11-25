@@ -24,6 +24,12 @@ sudo apt install -y python3-pip unzip wget || echo "Error installing Python and 
 # Install Selenium for Python
 pip3 install selenium --break-system-packages || echo "Failed to install Selenium"
 
+# Install Google Chrome
+printf "${CYAN}Installing Google Chrome\n${NORMAL}"
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i google-chrome-stable_current_amd64.deb || echo "Failed to install Google Chrome"
+sudo apt-get install -f -y  # Fix any dependencies
+
 # Download and install the specified ChromeDriver version
 printf "${CYAN}Installing ChromeDriver version 128.0.6613.119\n${NORMAL}"
 wget https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.119/linux64/chromedriver-linux64.zip -O chromedriver-linux64.zip
