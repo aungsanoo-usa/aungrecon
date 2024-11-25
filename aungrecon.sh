@@ -62,43 +62,6 @@ test_connectivity() {
     exit 1
 }
 
-update_and_restart() {
-    echo -e "${colors[yellow]}[+] Checking for updates...${colors[reset]}"
-    
-    if ! command -v git &>/dev/null; then
-        echo -e "${colors[red]}[!] Git is not installed. Please install git to use the update function.${colors[reset]}"
-        exit 1
-    fi
-
-    echo "$current_stage" > "$temp_file"
-    cd "$script_dir" || exit
-
-    if ! git diff --quiet; then
-        echo -e "${colors[red]}[!] Uncommitted changes detected. Stashing changes temporarily to allow updates.${colors[reset]}"
-        git stash
-    fi
-
-    git fetch origin
-    if git diff --quiet HEAD origin/main; then
-        echo -e "${colors[green]}[+] Script is up-to-date.${colors[reset]}"
-    else
-        echo -e "${colors[blue]}[+] Updates found. Pulling the latest changes...${colors[reset]}"
-        git pull origin main
-        
-        # Run chmod only once, if permissions are incorrect
-        if [[ ! -x "$script_dir/aungrecon.sh" ]]; then
-            chmod +x "$script_dir/aungrecon.sh"
-            echo -e "${colors[green]}[+] Script permissions updated!${colors[reset]}"
-        fi
-
-        if git stash list | grep -q "stash@{0}"; then
-            echo -e "${colors[yellow]}[+] Reapplying stashed changes...${colors[reset]}"
-            git stash pop
-        fi
-
-        exec "$0"
-    fi
-}
 # Prepare output files before each scan
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
@@ -255,7 +218,6 @@ output_summary() {
 
 # Check general internet connectivity
 test_connectivity
-update_and_restart
 check_tools
 read -p "[+] Enter the website domain: " website_input
 website_url="${website_input#http://}"
