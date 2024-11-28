@@ -32,7 +32,7 @@ sudo apt-get install -f -y  # Fix any dependencies
 
 # Download and install the specified ChromeDriver version
 printf "${CYAN}Installing ChromeDriver version 128.0.6613.119\n${NORMAL}"
-wget https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.119/linux64/chromedriver-linux64.zip -O chromedriver-linux64.zip
+wget https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip -O chromedriver-linux64.zip
 if [[ $? -eq 0 ]]; then
   unzip chromedriver-linux64.zip
   sudo mv chromedriver-linux64/chromedriver /usr/local/bin/ || echo "Failed to move ChromeDriver to /usr/local/bin"
