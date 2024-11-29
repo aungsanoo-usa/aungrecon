@@ -25,7 +25,7 @@ printf "${CYAN}Installing Selenium and ChromeDriver dependencies\n${NORMAL}"
 sudo apt install -y python3-pip unzip wget || echo "Error installing Python and other dependencies"
 
 # Install Selenium for Python
-pip3 install selenium --break-system-packages || echo "Failed to install Selenium"
+pip3 install selenium setuptools --break-system-packages || echo "Failed to install Selenium"
 
 # Install Google Chrome
 printf "${CYAN}Installing Google Chrome\n${NORMAL}"
