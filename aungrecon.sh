@@ -10,13 +10,14 @@ declare -A colors=(
     [uline]="\e[0;35m"
     [reset]="\e[0m"
 )
-
-output_dir="$HOME/aungrecon/output"
-paramspider_results_dir="$HOME/aungrecon/results"
+# Determine script directory dynamically
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+output_dir="$script_dir/output"
+paramspider_results_dir="$script_dir/results"
 bsqli_output_dir="$output_dir/bsqli_results"
 github_repo="https://github.com/aungsanoo-usa/aungrecon.git"
-script_dir="$HOME/aungrecon"  # Path where the repository is cloned
-temp_file="/tmp/aungrecon_state.txt"  # File to store current script state
+# Ensure required directories exist
+mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir"
 
 tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3")
 
@@ -109,28 +110,28 @@ find_subdomains_and_endpoints() {
 # SQLi detection using BSQLi
 find_sqli_vulnerabilities() {
     echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities using BSQLi...${colors[reset]}"
-    bsqli_path="$HOME/aungrecon/bsqli/scan.py"
+    bsqli_path="$script_dir/bsqli/scan.py"
     if [ ! -f "$bsqli_path" ]; then
         echo -e "${colors[red]}[!] BSQLi tool not found. Ensure installation.${colors[reset]}"
         exit 1
     fi
     if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
         url_file="$output_dir/bsqli_urls.txt"
-        proxy_file="$HOME/aungrecon/proxy.txt"
-        payload_file="$HOME/aungrecon/xor.txt"
+        proxy_file="$script_dir/proxy.txt"
+        payload_file="$script_dir/xor.txt"
         cp "$output_dir/final.txt" "$url_file"
         [ ! -f "$payload_file" ] && echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}" && exit 1
         python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5 --proxy-file "$proxy_file"
-        mv "$HOME/aungrecon/bsqli/output/"*.html "$bsqli_output_dir/" 2>/dev/null
+        mv "$script_dir/bsqli/output/"*.html "$bsqli_output_dir/" 2>/dev/null
         echo -e "${colors[green]}[+] HTML report moved to $bsqli_output_dir.${colors[reset]}"
     fi
 }
 
 run_xss_scan() {
     echo -e "${colors[yellow]}[+] Running XSS scan...${colors[reset]}"
-    xss_scanner_path="$HOME/aungrecon/xss_scanner/xss_scanner.py"
+    xss_scanner_path="$script_dir/xss_scanner/xss_scanner.py"
     url_file="$output_dir/final.txt"
-    payload_file="$HOME/aungrecon/xss.txt"
+    payload_file="$script_dir/xss.txt"
     output_file="$output_dir/xss_vul.txt"
     [ ! -f "$xss_scanner_path" ] && echo -e "${colors[red]}[!] Missing XSS scanner.${colors[reset]}" && exit 1
     [ ! -f "$payload_file" ] && echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}" && exit 1
@@ -139,7 +140,7 @@ run_xss_scan() {
 
 run_secretfinder_scan() {
     echo -e "${colors[yellow]}[+] Running SecretFinder...${colors[reset]}"
-    secretfinder_path="$HOME/aungrecon/SecretFinder/SecretFinder.py"
+    secretfinder_path="$script_dir/SecretFinder/SecretFinder.py"
     js_file="$output_dir/js_links.txt"
     output_file="$output_dir/secret.txt"
     grep -E "\.js(\?|$)" "$output_dir/allurls.txt" > "$js_file"
@@ -162,9 +163,9 @@ run_lfi_scan() {
     echo -e "${colors[yellow]}[+] Running LFI scan...${colors[reset]}"
     
     # Define paths
-    lfi_scanner_path="$HOME/aungrecon/lfi_scanner/lfi_scan.py"
+    lfi_scanner_path="$script_dir/lfi_scanner/lfi_scan.py"
     url_file="$output_dir/final.txt"
-    payload_file="$HOME/aungrecon/lfi.txt"
+    payload_file="$script_dir/lfi.txt"
     output_file="$output_dir/lfi_vul.txt"
 
     # Check if the LFI scanner exists
@@ -201,12 +202,12 @@ run_lfi_scan() {
 
 run_open_redirect_scan() {
     echo -e "${colors[yellow]}[+] Running Open Redirect scan...${colors[reset]}"
-    [[ -s "$output_dir/alivesub.txt" ]] && while IFS= read -r url; do ffuf -u "$url/FUZZ" -w "$HOME/aungrecon/or.txt" -mc 200 -c -v -mr "http" >> "$output_dir/open_redirect_vul.txt"; done < "$output_dir/alivesub.txt"
+    [[ -s "$output_dir/alivesub.txt" ]] && while IFS= read -r url; do ffuf -u "$url/FUZZ" -w "$script_dir/or.txt" -mc 200 -c -v -mr "http" >> "$output_dir/open_redirect_vul.txt"; done < "$output_dir/alivesub.txt"
 }
 
 run_nuclei_scan() {
     echo -e "${colors[yellow]}[+] Running Nuclei scan...${colors[reset]}"
-    [[ -s "$output_dir/alivesub.txt" ]] && nuclei -l "$output_dir/alivesub.txt" -t $HOME/aungrecon/priv8-Nuclei -o "$output_dir/multiple_vulnerabilities.txt"
+    [[ -s "$output_dir/alivesub.txt" ]] && nuclei -l "$output_dir/alivesub.txt" -t $script_dir/priv8-Nuclei -o "$output_dir/multiple_vulnerabilities.txt"
 }
 
 output_summary() {
@@ -224,14 +225,168 @@ website_url="${website_input#http://}"
 website_url="${website_input#https://}"
 website_url="https://$website_url"
 
-prepare_output_files
-run_whatweb_scan
-find_subdomains_and_endpoints
-find_sqli_vulnerabilities
-run_xss_scan
-run_lfi_scan
-run_secretfinder_scan
-run_nikto_scan
-run_open_redirect_scan
-run_nuclei_scan
-output_summary
+
+# Flag to check if Option 1 has been executed
+subdomains_discovered=false
+
+# Trap for SIGINT (Ctrl+Shift+C)
+trap ctrl_c SIGINT
+
+ctrl_c() {
+    echo -e "\n${colors[yellow]}[!] Detected Ctrl+Shift+C.${colors[reset]}"
+    while true; do
+        read -p "(s)kip, (c)ontinue, or (q)uit: " choice
+        case $choice in
+            s|S)
+                echo -e "${colors[green]}[+] Skipping current operation and returning to menu.${colors[reset]}"
+                menu ;;
+            c|C)
+                echo -e "${colors[green]}[+] Continuing current operation.${colors[reset]}"
+                return ;;
+            q|Q)
+                echo -e "${colors[red]}[!] Quitting script.${colors[reset]}"
+                exit 0 ;;
+            *)
+                echo -e "${colors[red]}[!] Invalid choice. Please select (s), (c), or (q).${colors[reset]}"
+        esac
+    done
+}
+
+# Main menu
+menu() {
+    echo -e "\n${colors[cyan]}Select an option:${colors[reset]}"
+    echo -e "1. Crawl URLs and Endpoints (Katana + ParamSpider)"
+    echo -e "2. Scan for Blind SQL Injection Vulnerabilities"
+    echo -e "3. Scan for XSS Vulnerabilities"
+    echo -e "4. Scan for Open Redirect Vulnerabilities"
+    echo -e "5. Scan for Sensitive data (apikeys, accesstoken, authorizations, jwt,..etc)"
+    echo -e "6. Perform Full Scan"
+    echo -e "7. Update Tool"
+    echo -e "8. Exit"
+    read -p "Enter your choice [1-7]: " choice
+
+    case $choice in
+        1)
+            echo -e "${colors[yellow]}[+] Starting URL Crawling and Endpoint Discovery...${colors[reset]}"
+            prepare_output_files
+            run_whatweb_scan
+            find_subdomains_and_endpoints
+            subdomains_discovered=true
+            echo -e "${colors[green]}[+] URL Crawling completed. Returning to menu.${colors[reset]}"
+            menu ;;
+            
+        2)
+            if [ "$subdomains_discovered" != true ]; then
+                echo -e "${colors[red]}[!] Option 1 has not been executed. Running Option 1 first...${colors[reset]}"
+                prepare_output_files
+                run_whatweb_scan
+                find_subdomains_and_endpoints
+                subdomains_discovered=true
+            fi
+            echo -e "${colors[yellow]}[+] Starting Blind SQL Injection Scan...${colors[reset]}"
+            find_sqli_vulnerabilities
+            menu ;;
+            
+        3)
+            if [ "$subdomains_discovered" != true ]; then
+                echo -e "${colors[red]}[!] Option 1 has not been executed. Running Option 1 first...${colors[reset]}"
+                prepare_output_files
+                run_whatweb_scan
+                find_subdomains_and_endpoints
+                subdomains_discovered=true
+            fi
+            echo -e "${colors[yellow]}[+] Starting XSS Scan...${colors[reset]}"
+            run_xss_scan
+            menu ;;
+            
+        4)
+            if [ "$subdomains_discovered" != true ]; then
+                echo -e "${colors[red]}[!] Option 1 has not been executed. Running Option 1 first...${colors[reset]}"
+                prepare_output_files
+                run_whatweb_scan
+                find_subdomains_and_endpoints
+                subdomains_discovered=true
+            fi
+            echo -e "${colors[yellow]}[+] Starting Open Redirect Scan...${colors[reset]}"
+            run_open_redirect_scan
+            menu ;;
+            
+        5)
+            if [ "$subdomains_discovered" != true ]; then
+                echo -e "${colors[red]}[!] Option 1 has not been executed. Running Option 1 first...${colors[reset]}"
+                prepare_output_files
+                run_whatweb_scan
+                find_subdomains_and_endpoints
+                subdomains_discovered=true
+            fi
+            echo -e "${colors[yellow]}[+] Starting Secret Finder Scan...${colors[reset]}"
+            run_secretfinder_scan
+            menu ;;    
+            
+            
+        6)
+            echo -e "${colors[yellow]}[+] Starting Full Scan (includes Option 1)...${colors[reset]}"
+            prepare_output_files
+            run_whatweb_scan
+            find_subdomains_and_endpoints
+            subdomains_discovered=true
+            find_sqli_vulnerabilities
+            run_xss_scan
+            run_open_redirect_scan
+            run_secretfinder_scan
+            run_lfi_scan
+            run_secretfinder_scan
+            run_nikto_scan
+            run_nuclei_scan
+            output_summary
+            menu ;;
+        7) update_tool ;;
+        8) echo -e "${colors[green]}Exiting...${colors[reset]}" ; exit 0 ;;
+        *) echo -e "${colors[red]}Invalid option, try again.${colors[reset]}" ; menu ;;
+    esac
+}
+
+
+
+# Function: Check if subdomain discovery has been performed before running other scans
+check_crawl_and_execute() {
+    local func=$1
+    local scan_name=$2
+    if [ "$subdomains_discovered" = true ]; then
+        echo -e "${colors[yellow]}Starting $scan_name...${colors[reset]}"
+        $func
+    else
+        echo -e "${colors[red]}[!] Subdomain discovery has not been performed. Please run Option 1 first.${colors[reset]}"
+        menu
+    fi
+}
+
+# Function: Perform Full Scan
+full_scan() {
+    echo -e "${colors[yellow]}Starting Full Scan...${colors[reset]}"
+    prepare_output_files 
+    run_whatweb_scan 
+    find_subdomains_and_endpoints
+    find_sqli_vulnerabilities
+    run_xss_scan
+    run_open_redirect_scan
+    run_lfi_scan
+    run_secretfinder_scan
+    run_nikto_scan
+    run_nuclei_scan
+    output_summary
+    echo -e "${colors[green]}Full Scan completed.${colors[reset]}"
+}
+
+# Function: Update Tool
+update_tool() {
+    echo -e "${colors[blue]}[+] Updating AungRecon Tool...${colors[reset]}"
+    cd "$script_dir" || exit
+    git pull "$github_repo"
+    chmod +x "$(basename "$0")"
+    echo -e "${colors[green]}[+] Tool updated successfully.${colors[reset]}"
+    menu
+}
+
+# Show the menu immediately upon running the script
+menu
