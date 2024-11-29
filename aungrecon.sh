@@ -325,11 +325,14 @@ menu() {
             
             
         6)
+            if [ "$subdomains_discovered" != true ]; then
             echo -e "${colors[yellow]}[+] Starting Full Scan (includes Option 1)...${colors[reset]}"
             prepare_output_files
             run_whatweb_scan
             find_subdomains_and_endpoints
             subdomains_discovered=true
+			fi
+            echo -e "${colors[yellow]}[+] Starting Full Scan...${colors[reset]}"
             find_sqli_vulnerabilities
             run_xss_scan
             run_open_redirect_scan
