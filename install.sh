@@ -6,6 +6,9 @@ MAGENTA=$(tput setaf 5)
 CYAN=$(tput setaf 6)
 NORMAL=$(tput sgr0)
 
+# Determine the script directory dynamically
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 printf "${BOLD}${YELLOW}##########################################################\n"
 printf "##### Welcome to the AungRecon dependency installer #####\n"
 printf "##########################################################\n\n${NORMAL}"
@@ -32,7 +35,7 @@ sudo apt-get install -f -y  # Fix any dependencies
 
 # Download and install the specified ChromeDriver version
 printf "${CYAN}Installing ChromeDriver version 128.0.6613.119\n${NORMAL}"
-wget https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip -O chromedriver-linux64.zip
+wget https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.119/linux64/chromedriver-linux64.zip -O chromedriver-linux64.zip
 if [[ $? -eq 0 ]]; then
   unzip chromedriver-linux64.zip
   sudo mv chromedriver-linux64/chromedriver /usr/local/bin/ || echo "Failed to move ChromeDriver to /usr/local/bin"
@@ -42,9 +45,7 @@ else
 fi
 
 # Create AungRecon directory if it doesn't exist
-cd $HOME || echo "Failed to change to home directory"
-mkdir -p aungrecon
-cd aungrecon || echo "Failed to change to aungrecon directory"
+cd "$script_dir" || echo "Failed to change to script directory"
 
 # Clone repositories and install dependencies
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
@@ -68,7 +69,7 @@ for repo in "${!REPOS[@]}"; do
     pip3 install -r requirements.txt --break-system-packages || echo "Failed to install Python dependencies for ${repo}"
   fi
   
-  cd .. || echo "Failed to return to aungrecon directory"
+  cd "$script_dir" || echo "Failed to return to aungrecon directory"
 done
 
 # Copy Gf patterns to the correct directory
@@ -90,17 +91,19 @@ declare -a GO_TOOLS=(
   "github.com/projectdiscovery/katana/cmd/katana"
 )
 
+go_bin_path=$(go env GOPATH)/bin
+
 for tool in "${GO_TOOLS[@]}"; do
   tool_name=$(basename "$tool")
   printf "${CYAN}Installing $tool_name\n${NORMAL}"
   go install "$tool@latest" || echo "Failed to install Go tool: $tool_name"
   
-  sudo cp "$HOME/go/bin/$tool_name" /usr/local/bin/ || echo "Failed to move $tool_name to /usr/local/bin"
+  sudo cp "$go_bin_path/$tool_name" /usr/local/bin/ || echo "Failed to move $tool_name to /usr/local/bin"
 done
 
 # Set up paramspider
 printf "${CYAN}Setting up paramspider\n${NORMAL}"
-cd $HOME/aungrecon/paramspider || echo "Failed to change to paramspider directory"
+cd $script_dir/paramspider || echo "Failed to change to paramspider directory"
 pip3 install . --break-system-packages || echo "Failed to install paramspider"
 sudo mv ~/.local/bin/paramspider /usr/local/bin || echo "Failed to move paramspider to /usr/local/bin"
 cd .. || echo "Failed to return to aungrecon directory"
@@ -112,10 +115,10 @@ sudo mv ~/.local/bin/uro /usr/local/bin || echo "Failed to move uro to /usr/loca
 
 # Set up urldedupe
 printf "${CYAN}Setting up urldedupe\n${NORMAL}"
-cd $HOME/aungrecon/urldedupe || echo "Failed to change to urldedupe directory"
+cd $script_dir/urldedupe || echo "Failed to change to urldedupe directory"
 cmake CMakeLists.txt || echo "Failed to run CMake for urldedupe"
 make || echo "Failed to compile urldedupe"
-sudo mv $HOME/aungrecon/urldedupe/urldedupe /usr/local/bin || echo "Failed to move urldedupe to /usr/local/bin"
-sudo mv $HOME/go/bin/dalfox /usr/local/bin
+sudo mv $script_dir/urldedupe/urldedupe /usr/local/bin || echo "Failed to move urldedupe to /usr/local/bin"
+sudo mv $go_bin_path/dalfox /usr/local/bin
 # Final message
 printf "${BOLD}${YELLOW}Installation completed (with warnings, if any)!\n${NORMAL}"
