@@ -331,7 +331,7 @@ menu() {
             run_whatweb_scan
             find_subdomains_and_endpoints
             subdomains_discovered=true
-			fi
+	    fi
             echo -e "${colors[yellow]}[+] Starting Full Scan...${colors[reset]}"
             find_sqli_vulnerabilities
             run_xss_scan
