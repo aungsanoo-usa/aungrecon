@@ -382,11 +382,31 @@ full_scan() {
 update_tool() {
     echo -e "${colors[blue]}[+] Updating AungRecon Tool...${colors[reset]}"
     cd "$script_dir" || exit
-    git pull "$github_repo"
+
+    # Stash local changes
+    if ! git diff --quiet; then
+        echo -e "${colors[yellow]}[!] Stashing local changes...${colors[reset]}"
+        git stash || echo -e "${colors[red]}[!] Failed to stash changes.${colors[reset]}"
+    fi
+
+    # Pull updates
+    git pull "$github_repo" || {
+        echo -e "${colors[red]}[!] Failed to pull updates. Please check your network connection or resolve conflicts manually.${colors[reset]}"
+        return
+    }
+
+    # Reapply stashed changes
+    if git stash list | grep -q "stash@{0}"; then
+        echo -e "${colors[yellow]}[!] Reapplying stashed changes...${colors[reset]}"
+        git stash pop || echo -e "${colors[red]}[!] Failed to reapply stashed changes. Resolve conflicts manually.${colors[reset]}"
+    fi
+
+    # Ensure the script remains executable
     chmod +x "$(basename "$0")"
     echo -e "${colors[green]}[+] Tool updated successfully.${colors[reset]}"
     menu
 }
+
 
 # Show the menu immediately upon running the script
 menu
