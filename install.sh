@@ -51,7 +51,7 @@ cd "$script_dir" || echo "Failed to change to script directory"
 printf "${BOLD}${MAGENTA}Cloning repositories and installing dependencies\n${NORMAL}"
 declare -A REPOS=(
   ["paramspider"]="https://github.com/devanshbatham/paramspider"
-  ["Gf-Patterns"]="https://github.com/1ndianl33t/Gf-Patterns"
+  ["gFpattren"]="https://github.com/coffinxp/gFpattren.git"
   ["urldedupe"]="https://github.com/ameenmaali/urldedupe"
   ["priv8-Nuclei"]="https://github.com/aungsanoo-usa/priv8-Nuclei.git"
   ["bsqli"]="https://github.com/aungsanoo-usa/bsqli.git"
@@ -74,7 +74,7 @@ done
 
 # Copy Gf patterns to the correct directory
 mkdir -p ~/.gf
-cp -r Gf-Patterns/* ~/.gf || echo "Failed to copy GF patterns"
+cp -r gFpattren/* ~/.gf || echo "Failed to copy GF patterns"
 
 # Install Go-based tools
 printf "${BOLD}${MAGENTA}Installing GO tools\n${NORMAL}"
@@ -84,6 +84,8 @@ declare -a GO_TOOLS=(
   "github.com/projectdiscovery/httpx/cmd/httpx"
   "github.com/lc/gau"
   "github.com/tomnomnom/gf"
+  "github.com/KathanP19/Gxss"
+  "github.com/Emoe/kxss"
   "github.com/tomnomnom/qsreplace"
   "github.com/PentestPad/subzy"
   "github.com/tomnomnom/anew"
