@@ -19,7 +19,7 @@ github_repo="https://github.com/aungsanoo-usa/aungrecon.git"
 # Ensure required directories exist
 mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir"
 
-tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3")
+tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3" "Gxss" "kxss")
 
 # Print logo
 echo -e "${colors[yellow]}##########################################################"
@@ -105,7 +105,14 @@ find_subdomains_and_endpoints() {
     cat "$output_dir/katana_endpoints.txt" >> "$output_dir/allurls.txt"
     echo -e "${colors[blue]}[+] Filtering parameterized URLs...${colors[reset]}"
     cat "$output_dir/allurls.txt" | grep '=' | sed 's/=.*/=/' | sort | uniq > "$output_dir/final.txt"
-    cat "$output_dir/allurls.txt" | grep -E ".php|.asp|.aspx|.jspx|.jsp" | grep '=' | sed 's/=.*/=/' | sort | uniq > "$output_dir/bsqli.txt"
+    echo -e "${colors[blue]}[+] Filtering URLs for potential bsqli endpoints...${colors[reset]}"
+    cat "$output_dir/allurls.txt" | grep -E ".php|.asp|.aspx|.jspx|.jsp" | grep '=' | sed 's/=.*/=/' | sort | uniq > "$output_dir/bsqli_output.txt"
+    echo -e "${colors[blue]}[+] Filtering URLs for potential XSS endpoints...${colors[reset]}"
+    cat "$output_dir/allurls.txt" | Gxss | kxss | grep -oP '^URL: \K\S+' | sed 's/=.*/=/' | sort -u > "$output_dir/xss_output.txt"
+    echo -e "${colors[blue]}[+] Filtering URLs for potential Open Redirect endpoints...${colors[reset]}"
+    cat "$output_dir/allurls.txt" | gf or | sed 's/=.*/=/' | sort -u > "$output_dir/open_redirect_output.txt"
+    echo -e "${colors[blue]}[+] Filtering URLs for potential LFI endpoints...${colors[reset]}"
+    cat "$output_dir/allurls.txt" | gf lfi | sed 's/=.*/=/' | sort -u > "$output_dir/lfi_output.txt"
 }
 
 # SQLi detection using BSQLi
@@ -116,8 +123,8 @@ find_sqli_vulnerabilities() {
         echo -e "${colors[red]}[!] BSQLi tool not found. Ensure installation.${colors[reset]}"
         exit 1
     fi
-    if [[ -f "$output_dir/bsqli.txt" && -s "$output_dir/bsqli.txt" ]]; then
-        url_file="$output_dir/bsqli.txt"
+    if [[ -f "$output_dir/bsqli_output.txt" && -s "$output_dir/bsqli_output.txt" ]]; then
+        url_file="$output_dir/bsqli_output.txt"
         proxy_file="$script_dir/proxy.txt"
         payload_file="$script_dir/xor.txt"
         [ ! -f "$payload_file" ] && echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}" && exit 1
@@ -130,13 +137,31 @@ find_sqli_vulnerabilities() {
 run_xss_scan() {
     echo -e "${colors[yellow]}[+] Running XSS scan...${colors[reset]}"
     xss_scanner_path="$script_dir/xss_scanner/xss_scanner.py"
-    url_file="$output_dir/final.txt"
+    url_file="$output_dir/xss_output.txt"
     payload_file="$script_dir/xss.txt"
     output_file="$output_dir/xss_vul.txt"
+
+    # Check if required files exist
     [ ! -f "$xss_scanner_path" ] && echo -e "${colors[red]}[!] Missing XSS scanner.${colors[reset]}" && exit 1
     [ ! -f "$payload_file" ] && echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}" && exit 1
-    [ -s "$url_file" ] && python3 "$xss_scanner_path" -l "$url_file" -p "$payload_file" -o "$output_file"
+
+    # Check if URL file is empty
+    if [ ! -s "$url_file" ]; then
+        echo -e "${colors[red]}[!] No URLs found in $url_file. Please ensure the file contains valid URLs.${colors[reset]}"
+        return
+    fi
+
+    # Run the XSS scanner
+    python3 "$xss_scanner_path" -l "$url_file" -p "$payload_file" -o "$output_file"
+
+    # Check the results
+    if [ -s "$output_file" ]; then
+        echo -e "${colors[green]}[+] XSS vulnerabilities detected. Results saved in $output_file.${colors[reset]}"
+    else
+        echo -e "${colors[yellow]}[!] XSS scan completed but no vulnerabilities found.${colors[reset]}"
+    fi
 }
+
 
 run_secretfinder_scan() {
     echo -e "${colors[yellow]}[+] Running SecretFinder...${colors[reset]}"
@@ -164,7 +189,7 @@ run_lfi_scan() {
     
     # Define paths
     lfi_scanner_path="$script_dir/lfi_scanner/lfi_scan.py"
-    url_file="$output_dir/final.txt"
+    url_file="$output_dir/lfi_output.txt"
     payload_file="$script_dir/lfi.txt"
     output_file="$output_dir/lfi_vul.txt"
 
@@ -259,10 +284,11 @@ menu() {
     echo -e "2. Scan for Blind SQL Injection Vulnerabilities"
     echo -e "3. Scan for XSS Vulnerabilities"
     echo -e "4. Scan for Open Redirect Vulnerabilities"
-    echo -e "5. Scan for Sensitive data (apikeys, accesstoken, authorizations, jwt,..etc)"
-    echo -e "6. Perform Full Scan"
-    echo -e "7. Update Tool"
-    echo -e "8. Exit"
+    echo -e "5. Scan for LFI Vulnerabilities"
+    echo -e "6. Scan for Sensitive data (apikeys, accesstoken, authorizations, jwt,..etc)"
+    echo -e "7. Perform Full Scan"
+    echo -e "8. Update Tool"
+    echo -e "9. Exit"
     read -p "Enter your choice [1-7]: " choice
 
     case $choice in
@@ -319,12 +345,24 @@ menu() {
                 find_subdomains_and_endpoints
                 subdomains_discovered=true
             fi
+            echo -e "${colors[yellow]}[+] Starting LFI Scan...${colors[reset]}"
+            run_lfi_scan
+            menu ;; 
+            
+        6)
+            if [ "$subdomains_discovered" != true ]; then
+                echo -e "${colors[red]}[!] Option 1 has not been executed. Running Option 1 first...${colors[reset]}"
+                prepare_output_files
+                run_whatweb_scan
+                find_subdomains_and_endpoints
+                subdomains_discovered=true
+            fi
             echo -e "${colors[yellow]}[+] Starting Secret Finder Scan...${colors[reset]}"
             run_secretfinder_scan
             menu ;;    
             
             
-        6)
+        7)
             if [ "$subdomains_discovered" != true ]; then
             echo -e "${colors[yellow]}[+] Starting Full Scan (includes Option 1)...${colors[reset]}"
             prepare_output_files
@@ -343,8 +381,8 @@ menu() {
             run_nuclei_scan
             output_summary
             menu ;;
-        7) update_tool ;;
-        8) echo -e "${colors[green]}Exiting...${colors[reset]}" ; exit 0 ;;
+        8) update_tool ;;
+        9) echo -e "${colors[green]}Exiting...${colors[reset]}" ; exit 0 ;;
         *) echo -e "${colors[red]}Invalid option, try again.${colors[reset]}" ; menu ;;
     esac
 }
