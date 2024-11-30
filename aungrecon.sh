@@ -305,7 +305,7 @@ menu() {
     echo -e "3. Scan for XSS Vulnerabilities"
     echo -e "4. Scan for Open Redirect Vulnerabilities"
     echo -e "5. Scan for LFI Vulnerabilities"
-    echo -e "6. Scan for Sensitive data (apikeys, accesstoken, authorizations, jwt,..etc)"
+    echo -e "6. Scan for Sensitive data (apikeys,accesstoken,authorizations)"
     echo -e "7. Perform Full Scan"
     echo -e "8. Update Tool"
     echo -e "9. Exit"
