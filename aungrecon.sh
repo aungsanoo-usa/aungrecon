@@ -105,6 +105,7 @@ find_subdomains_and_endpoints() {
     cat "$output_dir/katana_endpoints.txt" >> "$output_dir/allurls.txt"
     echo -e "${colors[blue]}[+] Filtering parameterized URLs...${colors[reset]}"
     cat "$output_dir/allurls.txt" | grep '=' | sed 's/=.*/=/' | sort | uniq > "$output_dir/final.txt"
+    cat "$output_dir/allurls.txt" | grep -E ".php|.asp|.aspx|.jspx|.jsp" | grep '=' | sed 's/=.*/=/' | sort | uniq > "$output_dir/bsqli.txt"
 }
 
 # SQLi detection using BSQLi
@@ -115,11 +116,10 @@ find_sqli_vulnerabilities() {
         echo -e "${colors[red]}[!] BSQLi tool not found. Ensure installation.${colors[reset]}"
         exit 1
     fi
-    if [[ -f "$output_dir/final.txt" && -s "$output_dir/final.txt" ]]; then
-        url_file="$output_dir/bsqli_urls.txt"
+    if [[ -f "$output_dir/bsqli.txt" && -s "$output_dir/bsqli.txt" ]]; then
+        url_file="$output_dir/bsqli.txt"
         proxy_file="$script_dir/proxy.txt"
         payload_file="$script_dir/xor.txt"
-        cp "$output_dir/final.txt" "$url_file"
         [ ! -f "$payload_file" ] && echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}" && exit 1
         python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5 --proxy-file "$proxy_file"
         mv "$script_dir/bsqli/output/"*.html "$bsqli_output_dir/" 2>/dev/null
