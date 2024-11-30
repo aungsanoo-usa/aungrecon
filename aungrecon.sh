@@ -123,14 +123,34 @@ find_sqli_vulnerabilities() {
         echo -e "${colors[red]}[!] BSQLi tool not found. Ensure installation.${colors[reset]}"
         exit 1
     fi
+
     if [[ -f "$output_dir/bsqli_output.txt" && -s "$output_dir/bsqli_output.txt" ]]; then
         url_file="$output_dir/bsqli_output.txt"
         proxy_file="$script_dir/proxy.txt"
         payload_file="$script_dir/xor.txt"
-        [ ! -f "$payload_file" ] && echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}" && exit 1
+
+        # Ensure payload file exists
+        if [ ! -f "$payload_file" ]; then
+            echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}"
+            exit 1
+        fi
+
+        # Run the BSQLi scanner
         python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5 --proxy-file "$proxy_file"
-        mv "$script_dir/bsqli/output/"*.html "$bsqli_output_dir/" 2>/dev/null
-        echo -e "${colors[green]}[+] HTML report moved to $bsqli_output_dir.${colors[reset]}"
+
+        # Move only non-empty HTML reports
+        for file in "$script_dir/bsqli/output/"*.html; do
+            if [ -s "$file" ]; then
+                echo "Moving report: $file"
+                mv "$file" "$bsqli_output_dir/" 2>/dev/null
+            else
+                echo "Skipping empty or incomplete report: $file"
+            fi
+        done
+
+        echo -e "${colors[green]}[+] HTML report(s) moved to $bsqli_output_dir.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] No URLs found in $output_dir/bsqli_output.txt or the file is empty.${colors[reset]}"
     fi
 }
 
