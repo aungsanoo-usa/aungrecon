@@ -136,7 +136,7 @@ find_sqli_vulnerabilities() {
         fi
 
         # Run the BSQLi scanner
-        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5 --proxy-file "$proxy_file"
+        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 10 --proxy-file "$proxy_file"
 
         # Move only non-empty HTML reports
         for file in "$script_dir/bsqli/output/"*.html; do
