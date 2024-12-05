@@ -18,7 +18,7 @@ sudo apt -y update
 
 # Install required programming languages and essential packages
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake whatweb ffuf nikto || echo "Error installing essential packages"
+sudo apt install -y golang-go cmake whatweb ffuf nikto curl || echo "Error installing essential packages"
 
 # Install Selenium and ChromeDriver dependencies
 printf "${CYAN}Installing Selenium and ChromeDriver dependencies\n${NORMAL}"
