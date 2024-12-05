@@ -119,6 +119,17 @@ find_subdomains_and_endpoints() {
 find_sqli_vulnerabilities() {
     echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities using BSQLi...${colors[reset]}"
     bsqli_path="$script_dir/bsqli/scan.py"
+    proxy_url="https://raw.githubusercontent.com/TheSpeedX/PROXY-List/refs/heads/master/http.txt"
+    proxy_file="$script_dir/proxy.txt"
+
+    # Download the proxy list
+    echo -e "${colors[blue]}[+] Fetching proxy list from $proxy_url...${colors[reset]}"
+    curl -s -o "$proxy_file" "$proxy_url"
+    if [ ! -s "$proxy_file" ]; then
+        echo -e "${colors[red]}[!] Failed to download or proxy file is empty. Exiting.${colors[reset]}"
+        exit 1
+    fi
+
     if [ ! -f "$bsqli_path" ]; then
         echo -e "${colors[red]}[!] BSQLi tool not found. Ensure installation.${colors[reset]}"
         exit 1
@@ -126,7 +137,6 @@ find_sqli_vulnerabilities() {
 
     if [[ -f "$output_dir/bsqli_output.txt" && -s "$output_dir/bsqli_output.txt" ]]; then
         url_file="$output_dir/bsqli_output.txt"
-        proxy_file="$script_dir/proxy.txt"
         payload_file="$script_dir/xor.txt"
 
         # Ensure payload file exists
@@ -136,7 +146,7 @@ find_sqli_vulnerabilities() {
         fi
 
         # Run the BSQLi scanner
-        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 10 --proxy-file "$proxy_file"
+        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5 --proxy-file "$proxy_file"
 
         # Move only non-empty HTML reports
         for file in "$script_dir/bsqli/output/"*.html; do
