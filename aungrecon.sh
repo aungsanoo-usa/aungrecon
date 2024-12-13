@@ -117,52 +117,40 @@ find_subdomains_and_endpoints() {
 
 # SQLi detection using BSQLi
 find_sqli_vulnerabilities() {
-    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities using BSQLi...${colors[reset]}"
-    bsqli_path="$script_dir/bsqli/scan.py"
-    proxy_url="https://raw.githubusercontent.com/TheSpeedX/PROXY-List/refs/heads/master/http.txt"
-    proxy_file="$script_dir/proxy.txt"
+    echo -e "${colors[yellow]}[+] Finding SQLi vulnerabilities using the KKonaNN BSQLi scanner...${colors[reset]}"
+    bsqli_path="$script_dir/bsqli/main.py"
+    url_file="$output_dir/bsqli_output.txt"
+    payload_file="$script_dir/xor.txt"
+    output_file="$output_dir/bsqli_vul.txt"
 
-    # Download the proxy list
-    echo -e "${colors[blue]}[+] Fetching proxy list from $proxy_url...${colors[reset]}"
-    curl -s -o "$proxy_file" "$proxy_url"
-    if [ ! -s "$proxy_file" ]; then
-        echo -e "${colors[red]}[!] Failed to download or proxy file is empty. Exiting.${colors[reset]}"
-        exit 1
-    fi
-
+    # Check if BSQLi tool exists
     if [ ! -f "$bsqli_path" ]; then
-        echo -e "${colors[red]}[!] BSQLi tool not found. Ensure installation.${colors[reset]}"
+        echo -e "${colors[red]}[!] BSQLi tool not found at $bsqli_path. Ensure installation.${colors[reset]}"
         exit 1
     fi
 
-    if [[ -f "$output_dir/bsqli_output.txt" && -s "$output_dir/bsqli_output.txt" ]]; then
-        url_file="$output_dir/bsqli_output.txt"
-        payload_file="$script_dir/xor.txt"
+    # Ensure required files exist
+    if [ ! -f "$url_file" ] || [ ! -s "$url_file" ]; then
+        echo -e "${colors[red]}[!] URL file $url_file is missing or empty. Skipping BSQLi scan.${colors[reset]}"
+        return
+    fi
+    if [ ! -f "$payload_file" ]; then
+        echo -e "${colors[red]}[!] Payload file $payload_file is missing. Ensure it exists.${colors[reset]}"
+        exit 1
+    fi
 
-        # Ensure payload file exists
-        if [ ! -f "$payload_file" ]; then
-            echo -e "${colors[red]}[!] Missing payload file.${colors[reset]}"
-            exit 1
-        fi
+    # Run the BSQLi scanner
+    echo -e "${colors[blue]}[+] Running BSQLi scanner...${colors[reset]}"
+    python3 "$bsqli_path" -l "$url_file" -p "$payload_file" -t 10 -s -o "$output_file"
 
-        # Run the BSQLi scanner
-        python3 "$bsqli_path" -u "$url_file" -p "$payload_file" -t 5 --proxy-file "$proxy_file"
-
-        # Move only non-empty HTML reports
-        for file in "$script_dir/bsqli/output/"*.html; do
-            if [ -s "$file" ]; then
-                echo "Moving report: $file"
-                mv "$file" "$bsqli_output_dir/" 2>/dev/null
-            else
-                echo "Skipping empty or incomplete report: $file"
-            fi
-        done
-
-        echo -e "${colors[green]}[+] HTML report(s) moved to $bsqli_output_dir.${colors[reset]}"
+    # Check results
+    if [ -s "$output_file" ]; then
+        echo -e "${colors[green]}[+] BSQLi vulnerabilities detected. Results saved in $output_file.${colors[reset]}"
     else
-        echo -e "${colors[red]}[!] No URLs found in $output_dir/bsqli_output.txt or the file is empty.${colors[reset]}"
+        echo -e "${colors[yellow]}[!] BSQLi scan completed, but no vulnerabilities were found.${colors[reset]}"
     fi
 }
+
 
 run_xss_scan() {
     echo -e "${colors[yellow]}[+] Running XSS scan...${colors[reset]}"
