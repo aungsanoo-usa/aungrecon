@@ -121,7 +121,7 @@ find_sqli_vulnerabilities() {
     bsqli_path="$script_dir/bsqli/main.py"
     url_file="$output_dir/bsqli_output.txt"
     payload_file="$script_dir/xor.txt"
-    output_file="$output_dir/bsqli_vul.txt"
+    output_file="$bsqli_output_dir/bsqli_vul.txt"
 
     # Check if BSQLi tool exists
     if [ ! -f "$bsqli_path" ]; then
