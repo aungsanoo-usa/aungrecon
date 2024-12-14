@@ -315,7 +315,7 @@ menu() {
     echo -e "7. Perform Full Scan"
     echo -e "8. Update Tool"
     echo -e "9. Exit"
-    read -p "Enter your choice [1-7]: " choice
+    read -p "Enter your choice [1-9]: " choice
 
     case $choice in
         1)
