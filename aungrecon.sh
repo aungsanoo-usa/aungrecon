@@ -15,9 +15,25 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 output_dir="$script_dir/output"
 paramspider_results_dir="$script_dir/results"
 bsqli_output_dir="$output_dir/bsqli_results"
+xss_output_dir="$output_dir/xss_results"
+lfi_output_dir="$output_dir/lfi_results"
+or_output_dir="$output_dir/or_results"
+secretfinder_output_dir="$output_dir/secretfinder_results"
+nikto_output_dir="$output_dir/nikto_results"
+multiple_vulnerabilities_output_dir="$output_dir/multiple_vulnerabilities_results"
+whatweb_output_dir="$output_dir/whatweb_results"
+subzy_output_dir="$output_dir/subzy_results"
 github_repo="https://github.com/aungsanoo-usa/aungrecon.git"
-# Ensure required directories exist
-mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir"
+
+# Prepare output files before each scan
+prepare_output_files() {
+    echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
+    rm -rf "$output_dir" "$paramspider_results_dir"
+    mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir" "$whatweb_output_dir" "$xss_output_dir" "$lfi_output_dir" "$or_output_dir" "$secretfinder_output_dir" "$nikto_output_dir" "$multiple_vulnerabilities_output_dir" "$subzy_output_dir"
+    for file in subdomains.txt alivesub.txt final.txt katana_endpoints.txt; do
+        > "$output_dir/$file"
+    done
+}
 
 tools=("subfinder" "paramspider" "whatweb" "uro" "httpx" "subzy" "urldedupe" "anew" "ffuf" "gau" "gf" "nuclei" "dalfox" "katana" "nikto" "python3" "Gxss" "kxss")
 
@@ -36,6 +52,7 @@ cat << "EOF"
 #              ╱╱╱╱╱╱╱╱╱╱╰━━╯  aungsanoo.com
 EOF
 echo -e "${colors[reset]}"
+
 
 # Tool check function
 check_tools() {
@@ -63,19 +80,10 @@ test_connectivity() {
     exit 1
 }
 
-# Prepare output files before each scan
-prepare_output_files() {
-    echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
-    rm -rf "$output_dir" "$paramspider_results_dir"
-    mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir"
-    for file in xss_vul.txt open_redirect_vul.txt lfi_vul.txt multiple_vulnerabilities.txt subdomains.txt alivesub.txt final.txt whatweb.txt katana_endpoints.txt subzy_results.txt secret.txt; do
-        > "$output_dir/$file"
-    done
-}
 # WhatWeb scan
 run_whatweb_scan() {
     echo -e "${colors[yellow]}[+] Running WhatWeb scan to gather website information...${colors[reset]}"
-    whatweb -a 3 "$website_url" | tee "$output_dir/whatweb.txt"
+    whatweb -a 3 "$website_url" | tee "$whatweb_output_dir/whatweb.txt"
 }
 
 # Subdomain discovery, takeover check, and URL crawling
@@ -85,7 +93,7 @@ find_subdomains_and_endpoints() {
     echo -e "${colors[yellow]}[+] Filtering alive subdomains...${colors[reset]}"
     cat "$output_dir/subdomains.txt" | httpx -silent > "$output_dir/alivesub.txt"
     echo -e "${colors[yellow]}[+] Checking for subdomain takeover vulnerabilities using Subzy...${colors[reset]}"
-    subzy run --targets "$output_dir/subdomains.txt" | tee "$output_dir/subzy_results.txt"
+    subzy run --targets "$output_dir/subdomains.txt" | tee "$subzy_output_dir/subzy_results.txt"
     echo -e "${colors[green]}[+] Subdomain takeover detection completed. Results saved in subzy_results.txt.${colors[reset]}"
     echo -e "${colors[yellow]}[+] Crawling alive subdomains using Katana for additional endpoints...${colors[reset]}"
     while IFS= read -r subdomain; do
@@ -121,7 +129,7 @@ find_sqli_vulnerabilities() {
     bsqli_path="$script_dir/bsqli/main.py"
     url_file="$output_dir/bsqli_output.txt"
     payload_file="$script_dir/xor.txt"
-    output_file="$bsqli_output_dir/bsqli_vul.txt"
+    output_file="$output_dir/bsqli_results/bsqli_vul.txt"
 
     # Check if BSQLi tool exists
     if [ ! -f "$bsqli_path" ]; then
@@ -157,7 +165,7 @@ run_xss_scan() {
     xss_scanner_path="$script_dir/xss_scanner/xss_scanner.py"
     url_file="$output_dir/xss_output.txt"
     payload_file="$script_dir/xss.txt"
-    output_file="$output_dir/xss_vul.txt"
+    output_file="$output_dir/xss_results/xss_vul.txt"
 
     # Check if required files exist
     [ ! -f "$xss_scanner_path" ] && echo -e "${colors[red]}[!] Missing XSS scanner.${colors[reset]}" && exit 1
@@ -185,7 +193,7 @@ run_secretfinder_scan() {
     echo -e "${colors[yellow]}[+] Running SecretFinder...${colors[reset]}"
     secretfinder_path="$script_dir/SecretFinder/SecretFinder.py"
     js_file="$output_dir/js_links.txt"
-    output_file="$output_dir/secret.txt"
+    output_file="$output_dir/secretfinder_results/secret.txt"
     grep -E "\.js(\?|$)" "$output_dir/allurls.txt" > "$js_file"
     [ ! -f "$secretfinder_path" ] && echo -e "${colors[red]}[!] Missing SecretFinder.${colors[reset]}" && exit 1
     while IFS= read -r url; do
@@ -197,7 +205,7 @@ run_nikto_scan() {
     echo -e "${colors[yellow]}[+] Running Nikto on subdomains...${colors[reset]}"
     if [[ -s "$output_dir/alivesub.txt" ]]; then
         while IFS= read -r subdomain; do
-            nikto -h "$subdomain" -output "$output_dir/nikto_${subdomain//[:\/]/_}.txt"
+            nikto -h "$subdomain" -output "$output_dir/nikto_results/nikto_${subdomain//[:\/]/_}.txt"
         done < "$output_dir/alivesub.txt"
     fi
 }
@@ -209,7 +217,7 @@ run_lfi_scan() {
     lfi_scanner_path="$script_dir/lfi_scanner/lfi_scan.py"
     url_file="$output_dir/lfi_output.txt"
     payload_file="$script_dir/lfi.txt"
-    output_file="$output_dir/lfi_vul.txt"
+    output_file="$output_dir/lfi_results/lfi_vul.txt"
 
     # Check if the LFI scanner exists
     if [ ! -f "$lfi_scanner_path" ]; then
@@ -245,12 +253,12 @@ run_lfi_scan() {
 
 run_open_redirect_scan() {
     echo -e "${colors[yellow]}[+] Running Open Redirect scan...${colors[reset]}"
-    [[ -s "$output_dir/alivesub.txt" ]] && while IFS= read -r url; do ffuf -u "$url/FUZZ" -w "$script_dir/or.txt" -mc 200 -c -v -mr "http" >> "$output_dir/open_redirect_vul.txt"; done < "$output_dir/alivesub.txt"
+    [[ -s "$output_dir/alivesub.txt" ]] && while IFS= read -r url; do ffuf -u "$url/FUZZ" -w "$script_dir/or.txt" -mc 200 -c -v -mr "http" >> "$output_dir/or_results/open_redirect_vul.txt"; done < "$output_dir/alivesub.txt"
 }
 
 run_nuclei_scan() {
     echo -e "${colors[yellow]}[+] Running Nuclei scan...${colors[reset]}"
-    [[ -s "$output_dir/alivesub.txt" ]] && nuclei -l "$output_dir/alivesub.txt" -t $script_dir/priv8-Nuclei -o "$output_dir/multiple_vulnerabilities.txt"
+    [[ -s "$output_dir/alivesub.txt" ]] && nuclei -l "$output_dir/alivesub.txt" -t $script_dir/priv8-Nuclei -o "$output_dir/multiple_vulnerabilities_results/multiple_vulnerabilities.txt"
 }
 
 output_summary() {
