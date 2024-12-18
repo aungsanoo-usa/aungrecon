@@ -126,7 +126,8 @@ test_connectivity() {
 # WhatWeb scan
 run_whatweb_scan() {
     echo -e "${colors[yellow]}[+] Running WhatWeb scan to gather website information...${colors[reset]}"
-    whatweb -a 3 "$website_url" | tee "$whatweb_output_dir/whatweb.txt"
+    # Run WhatWeb and clean ANSI escape sequences using sed
+    whatweb -a 3 "$website_url" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | tee "$whatweb_output_dir/whatweb.txt"
 }
 
 # Subdomain discovery, takeover check, and URL crawling
