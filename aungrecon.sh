@@ -355,17 +355,30 @@ github_dorks() {
     echo -e "${colors[yellow]}[+] Running GitHub Dorks Analysis...${colors[reset]}"
     mkdir -p "$osint_output_dir"
 
-    # Check if GitHub token file exists
+    # Check if GitHub token file exists and is not empty
     if [[ ! -s "$GITHUB_TOKENS" ]]; then
         echo -e "${colors[red]}[!] GitHub token file is missing or empty: $GITHUB_TOKENS${colors[reset]}"
+        read -p "[?] Enter your GitHub token: " user_token
+        if [[ -z "$user_token" ]]; then
+            echo -e "${colors[red]}[!] No token provided. Skipping GitHub Dorks analysis.${colors[reset]}"
+            return
+        else
+            echo "$user_token" > "$GITHUB_TOKENS"
+            echo -e "${colors[green]}[+] Token saved to $GITHUB_TOKENS.${colors[reset]}"
+        fi
+    fi
+
+    # Validate token file content
+    token=$(head -1 "$GITHUB_TOKENS")
+    if [[ -z "$token" ]]; then
+        echo -e "${colors[red]}[!] Token file is empty. Skipping GitHub Dorks analysis.${colors[reset]}"
         return
     fi
 
-    # Set dorks files path
+    # Set dorks file paths
     medium_dorks="${tools_dir}/gitdorks_go/Dorks/medium_dorks.txt"
     small_dorks="${tools_dir}/gitdorks_go/Dorks/smalldorks.txt"
     output_file="$osint_output_dir/gitdorks.txt"
-  
 
     # Ensure gitdorks_go exists
     if ! command -v gitdorks_go &>/dev/null; then
@@ -373,17 +386,14 @@ github_dorks() {
         return
     fi
 
-    # Check for dorks file and mode
-    echo -e "${colors[cyan]}[+] Performing GitHub Dorks analysis...${colors[reset]}"
-    if [[ "$DEEP" == true ]]; then
-        dorks_file="$medium_dorks"
-    else
-        dorks_file="$small_dorks"
-    fi
+    # Choose dorks file based on depth
+    dorks_file="$small_dorks"
+    [[ "$DEEP" == true ]] && dorks_file="$medium_dorks"
 
     if [[ -f "$dorks_file" ]]; then
-        gitdorks_go -gd "$dorks_file" -nws 20 -target "$website_input" -tf "$GITHUB_TOKEN" -ew 3 | anew -q "$output_file" || {
-            echo -e "${colors[red]}[!] gitdorks_go/anew command failed.${colors[reset]}"
+        echo -e "${colors[cyan]}[+] Performing GitHub Dorks analysis...${colors[reset]}"
+        gitdorks_go -gd "$dorks_file" -nws 20 -target "$website_input" -token "$token" -ew 3 | anew -q "$output_file" || {
+            echo -e "${colors[red]}[!] gitdorks_go command failed.${colors[reset]}"
             return
         }
         if [[ -s "$output_file" ]]; then
@@ -395,7 +405,6 @@ github_dorks() {
         echo -e "${colors[red]}[!] Dorks file not found: $dorks_file${colors[reset]}"
     fi
 }
-
 
 metadata() {
     echo -e "${colors[yellow]}[+] Running Metadata Analysis...${colors[reset]}"
