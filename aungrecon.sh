@@ -323,7 +323,7 @@ run_open_redirect_scan() {
 
 run_nuclei_scan() {
     echo -e "${colors[yellow]}[+] Running Nuclei scan...${colors[reset]}"
-    [[ -s "$output_dir/alivesub.txt" ]] && nuclei -l "$output_dir/alivesub.txt" -t $script_dir/priv8-Nuclei -o "$output_dir/multiple_vulnerabilities_results/multiple_vulnerabilities.txt"
+    [[ -s "$output_dir/alivesub.txt" ]] && nuclei -l "$output_dir/alivesub.txt" -t $tools_dir/priv8-Nuclei -o "$output_dir/multiple_vulnerabilities_results/multiple_vulnerabilities.txt"
 }
 
 output_summary() {
