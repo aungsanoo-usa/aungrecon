@@ -13,6 +13,7 @@ nikto_output_dir="$output_dir/nikto_results"
 multiple_vulnerabilities_output_dir="$output_dir/multiple_vulnerabilities_results"
 whatweb_output_dir="$output_dir/whatweb_results"
 subzy_output_dir="$output_dir/subzy_results"
+naabu_output_file="$output_dir/naabu_ports_results"
 github_repo="https://github.com/aungsanoo-usa/aungrecon.git"
 osint_output_dir="$output_dir/osint_results"
 GITHUB_TOKENS="$script_dir/github_token.txt"
@@ -21,7 +22,7 @@ GITHUB_TOKENS="$script_dir/github_token.txt"
 prepare_output_files() {
     echo -e "${colors[blue]}[+] Preparing and cleaning output files...${colors[reset]}"
     rm -rf "$output_dir" "$paramspider_results_dir"
-    mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir" "$whatweb_output_dir" "$xss_output_dir" "$lfi_output_dir" "$or_output_dir" "$secretfinder_output_dir" "$nikto_output_dir" "$multiple_vulnerabilities_output_dir" "$subzy_output_dir" "$osint_output_dir"
+    mkdir -p "$output_dir" "$paramspider_results_dir" "$bsqli_output_dir" "$whatweb_output_dir" "$xss_output_dir" "$lfi_output_dir" "$or_output_dir" "$secretfinder_output_dir" "$nikto_output_dir" "$multiple_vulnerabilities_output_dir" "$subzy_output_dir" "$osint_output_dir" "$naabu_output_file"
     for file in subdomains.txt alivesub.txt final.txt katana_endpoints.txt; do
         > "$output_dir/$file"
     done
@@ -132,6 +133,22 @@ run_whatweb_scan() {
     echo -e "${colors[yellow]}[+] Running WhatWeb scan to gather website information...${colors[reset]}"
     # Run WhatWeb and clean ANSI escape sequences using sed
     whatweb -a 3 "$website_url" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" | tee "$whatweb_output_dir/whatweb.txt"
+}
+
+run_naabu_scan() {
+    echo -e "${colors[yellow]}[+] Running Naabu for port scanning...${colors[reset]}"
+    naabu_output_file="$naabu_output_file/naabu_ports.txt"
+
+    # Ensure subdomains.txt exists and is not empty
+    if [[ -s "$output_dir/subdomains.txt" ]]; then
+        naabu -list "$output_dir/subdomains.txt" -c 50 -nmap-cli 'nmap -sV -sC' -o "$naabu_output_file" || {
+            echo -e "${colors[red]}[!] Naabu scan failed.${colors[reset]}"
+            return
+        }
+        echo -e "${colors[green]}[+] Naabu ports scan completed. Results saved in $naabu_output_file.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] subdomains.txt file is missing or empty. Ensure subdomain enumeration is complete before running Naabu.${colors[reset]}"
+    fi
 }
 
 # Subdomain discovery, takeover check, and URL crawling
@@ -614,6 +631,7 @@ menu() {
             prepare_output_files
             run_whatweb_scan
             find_subdomains_and_endpoints
+            run_naabu_scan
             subdomains_discovered=true
             echo -e "${colors[green]}[+] URL Crawling completed. Returning to menu.${colors[reset]}"
             menu ;;
@@ -704,6 +722,7 @@ menu() {
             prepare_output_files
             run_whatweb_scan
             find_subdomains_and_endpoints
+            run_naabu_scan
             find_sqli_vulnerabilities
             run_xss_scan
             run_open_redirect_scan
