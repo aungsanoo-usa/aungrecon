@@ -62,7 +62,8 @@ declare -a GO_TOOLS=(
   "github.com/damit5/gitdorks_go"
   "github.com/tomnomnom/unfurl"
   "github.com/trickest/enumerepo"
-  "github.com/projectdiscovery/naabu/v2/cmd/naabu@latest"
+  "github.com/dwisiswant0/crlfuzz/cmd/crlfuzz"
+  "github.com/projectdiscovery/naabu/v2/cmd/naabu"
 )
 
 go_bin_path=$(go env GOPATH)/bin
@@ -105,6 +106,7 @@ declare -A REPOS=(
   ["Spoofy"]="https://github.com/MattKeeley/Spoofy.git"
   ["dorks_hunter"]="https://github.com/six2dez/dorks_hunter"
   ["misconfig-mapper"]="https://github.com/intigriti/misconfig-mapper.git"
+  ["Corsy"]="https://github.com/s0md3v/Corsy.git"
 )
 
 for repo in "${!REPOS[@]}"; do
