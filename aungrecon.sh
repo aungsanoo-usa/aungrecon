@@ -326,6 +326,24 @@ run_nuclei_scan() {
     [[ -s "$output_dir/alivesub.txt" ]] && nuclei -l "$output_dir/alivesub.txt" -t $tools_dir/priv8-Nuclei -o "$output_dir/multiple_vulnerabilities_results/multiple_vulnerabilities.txt"
 }
 
+run_corsy_scan() {
+    echo -e "${colors[yellow]}[+] Running Corsy for CORS misconfiguration detection...${colors[reset]}"
+    corsy_output_file="$output_dir/corsy_results/corsy_vul.txt"
+
+    # Ensure alivesub.txt exists and is not empty
+    if [[ -s "$output_dir/alivesub.txt" ]]; then
+        mkdir -p "$output_dir/corsy_results"
+        python3 "$tools_dir/Corsy/corsy.py" -i "$output_dir/alivesub.txt" -o "$corsy_output_file" || {
+            echo -e "${colors[red]}[!] Corsy scan failed.${colors[reset]}"
+            return
+        }
+        echo -e "${colors[green]}[+] Corsy scan completed. Results saved in $corsy_output_file.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] alivesub.txt file is missing or empty. Ensure subdomain enumeration is complete before running Corsy.${colors[reset]}"
+    fi
+}
+
+
 output_summary() {
     echo -e "${colors[green]}Filtered URLs and vulnerabilities saved in the 'output' directory:${colors[reset]}"
 
@@ -616,7 +634,7 @@ menu() {
     echo "1. Crawl URLs and Endpoints (Katana + ParamSpider)"
     echo "2. Scan for Blind SQL Injection Vulnerabilities"
     echo "3. Scan for XSS Vulnerabilities"
-    echo "4. Scan for Open Redirect Vulnerabilities"
+    echo "4. Scan for Open Redirect & CORS misconfiguration detection "
     echo "5. Scan for LFI Vulnerabilities"
     echo "6. Scan for Sensitive Data (apikeys, tokens, etc.)"
     echo "7. Run OSINT Tools (API leak, Emails, Misconfig, Domain Info, etc.)"
@@ -670,6 +688,7 @@ menu() {
             fi
             echo -e "${colors[yellow]}[+] Starting Open Redirect Scan...${colors[reset]}"
             run_open_redirect_scan
+            run_corsy_scan
             menu ;;
             
         5)
@@ -726,6 +745,7 @@ menu() {
             find_sqli_vulnerabilities
             run_xss_scan
             run_open_redirect_scan
+            run_corsy_scan
             run_secretfinder_scan
             run_lfi_scan
             run_secretfinder_scan
