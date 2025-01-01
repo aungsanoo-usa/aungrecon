@@ -64,6 +64,7 @@ declare -a GO_TOOLS=(
   "github.com/trickest/enumerepo"
   "github.com/dwisiswant0/crlfuzz/cmd/crlfuzz"
   "github.com/projectdiscovery/naabu/v2/cmd/naabu"
+  "github.com/channyein1337/jsleak"
 )
 
 go_bin_path=$(go env GOPATH)/bin
