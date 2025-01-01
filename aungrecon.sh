@@ -55,6 +55,7 @@ tools=(
     "emailfinder"
     "whois"
     "jq"
+    "jsleak"
 )
 
 # ANSI color code variables
@@ -266,6 +267,24 @@ run_secretfinder_scan() {
     done < "$js_file"
 }
 
+
+run_jsleak_scan() {
+    echo -e "${colors[yellow]}[+] Running JSLeak to analyze JavaScript files for leaks...${colors[reset]}"
+    jsleak_output_file="$output_dir/secretfinder_results/jsleak_output.txt"
+
+    # Ensure js_links.txt exists and is not empty
+    if [[ -s "$output_dir/js_links.txt" ]]; then
+        cat "$output_dir/js_links.txt" | jsleak -s -l -k > "$jsleak_output_file" || {
+            echo -e "${colors[red]}[!] JSLeak scan failed.${colors[reset]}"
+            return
+        }
+        echo -e "${colors[green]}[+] JSLeak scan completed. Results saved in $jsleak_output_file.${colors[reset]}"
+    else
+        echo -e "${colors[red]}[!] js_links.txt file is missing or empty. Ensure JavaScript links are collected before running JSLeak.${colors[reset]}"
+    fi
+}
+
+ 
 run_nikto_scan() {
     echo -e "${colors[yellow]}[+] Running Nikto on subdomains...${colors[reset]}"
     if [[ -s "$output_dir/alivesub.txt" ]]; then
@@ -713,6 +732,7 @@ menu() {
             fi
             echo -e "${colors[yellow]}[+] Starting Secret Finder Scan...${colors[reset]}"
             run_secretfinder_scan
+            run_jsleak_scan
             menu ;;    
             
         7) 
@@ -747,6 +767,7 @@ menu() {
             run_open_redirect_scan
             run_corsy_scan
             run_secretfinder_scan
+            run_jsleak_scan
             run_lfi_scan
             run_secretfinder_scan
             run_nikto_scan
