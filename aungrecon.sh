@@ -56,6 +56,7 @@ tools=(
     "whois"
     "jq"
     "jsleak"
+    "naabu"
 )
 
 # ANSI color code variables
