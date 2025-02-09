@@ -87,7 +87,7 @@ cat << "EOF"
   ░   ▒    ░░░ ░ ░    ░   ░ ░ ░ ░   ░   ░░   ░    ░   ░        ░ ░ ░ ▒     ░   ░ ░ 
       ░  ░   ░              ░       ░    ░        ░  ░░ ░          ░ ░           ░ 
                                                       ░                            
-                                                      aungsanoo.com
+                                                      www.aungsanoo.com
 EOF
 echo -e "${colors[reset]}"
 
