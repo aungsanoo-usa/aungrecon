@@ -33,6 +33,7 @@ Before you can use **AungRecon**, ensure you have the following tools installed 
 - `ffuf`
 - `gau`
 - `gf`
+- `naabu`
 - `nuclei`
 - `Dalfox`
 - `katana`
