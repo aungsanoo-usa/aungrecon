@@ -19,7 +19,7 @@ sudo apt -y update
 
 # Install required programming languages and essential packages
 printf "${BOLD}${MAGENTA}Installing programming languages and essential packages\n${NORMAL}"
-sudo apt install -y golang-go cmake jq whatweb ffuf nikto curl python3-pip unzip wget -y || echo "Error installing essential packages"
+sudo apt install -y golang-go cmake jq whatweb ffuf nikto curl python3-pip unzip wget libpcap-dev -y || echo "Error installing essential packages"
 
 # Install Google Chrome
 printf "${CYAN}Installing Google Chrome\n${NORMAL}"
